@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:internship_management_system/login.dart';
+import 'package:internship_management_system/login_screen/login_screen.dart';
 
 void main() {
   runApp(const MyApp());
