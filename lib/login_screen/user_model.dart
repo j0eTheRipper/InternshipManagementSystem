@@ -16,6 +16,13 @@ class User {
         fullname = json['fullname'],
         email = json['email'],
         role = json['role'];
+
+  Map<String, dynamic> toJson() => {
+        'user_id': userId,
+        'fullname': fullname,
+        'email': email,
+        'role': role,
+      };
 }
 
 class Student {
@@ -39,4 +46,12 @@ class Student {
         yearOfStudy = json['year_of_study'],
         fieldOfStudy = json['field_of_study'],
         studentId = json['student_id'];
+
+  Map<String, dynamic> toJson() => {
+        'user': user.toJson(),
+        'university_mentor': universityMentor.toJson(),
+        'year_of_study': yearOfStudy,
+        'field_of_study': fieldOfStudy,
+        'student_id': studentId,
+      };
 }

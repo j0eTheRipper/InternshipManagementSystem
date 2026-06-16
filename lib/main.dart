@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/dashboard/dashboard_layout.dart';
 import 'package:internship_management_system/dashboard/pages/chat_page.dart';
 import 'package:internship_management_system/dashboard/pages/companies_page.dart';
@@ -9,6 +10,18 @@ import 'package:internship_management_system/login_screen/login_screen.dart';
 
 final _router = GoRouter(
   initialLocation: '/login',
+  redirect: (context, state) {
+    final isLoggedIn = AuthState.isLoggedIn;
+    final isLoginRoute = state.matchedLocation == '/login';
+
+    if (!isLoggedIn && !isLoginRoute) {
+      return '/login';
+    }
+    if (isLoggedIn && isLoginRoute) {
+      return '/dashboard';
+    }
+    return null;
+  },
   routes: [
     GoRoute(
       path: '/login',
@@ -38,7 +51,9 @@ final _router = GoRouter(
   ],
 );
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await AuthState.init();
   runApp(const MyApp());
 }
 

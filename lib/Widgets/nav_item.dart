@@ -6,7 +6,12 @@ class NavItem extends StatelessWidget {
   final String label;
   final String route;
 
-  const NavItem({required this.icon, required this.label, required this.route});
+  const NavItem({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.route,
+  });
 
   @override
   Widget build(BuildContext context) {

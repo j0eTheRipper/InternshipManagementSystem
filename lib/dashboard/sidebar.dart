@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
-import 'nav_item.dart';
+import '../Widgets/nav_item.dart';
 
 class Sidebar extends StatelessWidget {
   const Sidebar({super.key});
@@ -86,9 +86,9 @@ class Sidebar extends StatelessWidget {
             child: SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () {
-                  AuthState.logout();
-                  context.go('/login');
+                onPressed: () async {
+                  await AuthState.logout();
+                  if (context.mounted) context.go('/login');
                 },
                 icon: const Icon(Icons.logout_rounded, size: 18),
                 label: const Text('Logout'),
@@ -108,4 +108,3 @@ class Sidebar extends StatelessWidget {
     );
   }
 }
-
