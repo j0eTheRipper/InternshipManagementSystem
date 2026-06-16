@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/login_screen/system_feature.dart';
 import 'package:internship_management_system/Widgets/text_field.dart';
-import 'package:internship_management_system/login_screen/user_model.dart';
 import 'api.dart';
 
 class Login extends StatefulWidget {
@@ -135,10 +134,7 @@ class _LoginState extends State<Login> {
                               color: Colors.white,
                             ),
                           )
-                        : const Text(
-                            'Sign In',
-                            style: TextStyle(fontSize: 16),
-                          ),
+                        : const Text('Sign In', style: TextStyle(fontSize: 16)),
                   ),
                 ),
                 const SizedBox(height: 48),
