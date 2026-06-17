@@ -1,6 +1,7 @@
 import 'dart:convert';
 
-import 'package:internship_management_system/login_screen/user_model.dart';
+import 'package:internship_management_system/models/student.dart';
+import 'package:internship_management_system/models/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthState {

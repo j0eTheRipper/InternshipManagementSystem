@@ -40,12 +40,14 @@ class _StudentDashboard extends StatelessWidget {
               student != null
                   ? '${student.fieldOfStudy} · Year ${student.yearOfStudy}'
                   : 'Manage your internship journey',
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF717182),
-              ),
+              style: const TextStyle(fontSize: 14, color: Color(0xFF717182)),
             ),
             const SizedBox(height: 24),
+            Row(
+              children: [
+                //TODO:Implement the progress stuff based on the student's progres.
+              ],
+            ),
             Row(
               children: [
                 Expanded(
@@ -138,10 +140,7 @@ class _MentorDashboard extends StatelessWidget {
             const SizedBox(height: 8),
             const Text(
               'University Mentor Dashboard',
-              style: TextStyle(
-                fontSize: 14,
-                color: Color(0xFF717182),
-              ),
+              style: TextStyle(fontSize: 14, color: Color(0xFF717182)),
             ),
             const SizedBox(height: 24),
             Row(
@@ -231,7 +230,9 @@ class _StatCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE0E0E0).withValues(alpha: 0.5)),
+        border: Border.all(
+          color: const Color(0xFFE0E0E0).withValues(alpha: 0.5),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,10 +254,7 @@ class _StatCard extends StatelessWidget {
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Color(0xFF717182),
-            ),
+            style: const TextStyle(fontSize: 13, color: Color(0xFF717182)),
           ),
         ],
       ),
@@ -284,7 +282,9 @@ class _OpportunityCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE0E0E0).withValues(alpha: 0.5)),
+        border: Border.all(
+          color: const Color(0xFFE0E0E0).withValues(alpha: 0.5),
+        ),
       ),
       child: Row(
         children: [
@@ -381,7 +381,9 @@ class _StudentCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE0E0E0).withValues(alpha: 0.5)),
+        border: Border.all(
+          color: const Color(0xFFE0E0E0).withValues(alpha: 0.5),
+        ),
       ),
       child: Row(
         children: [

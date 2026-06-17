@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'user_model.dart';
+import 'package:internship_management_system/models/student.dart';
+import 'package:internship_management_system/models/user.dart';
 
 const _baseUrl = 'http://localhost:8000';
 
