@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:internship_management_system/api/student.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
+import 'package:internship_management_system/models/student.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -17,7 +19,28 @@ class _StudentDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final student = AuthState.currentStudent;
+    final userId = AuthState.currentUser?.userId;
+    if (userId == null) {
+      return _buildBody(student: null);
+    }
+
+    return FutureBuilder<Student>(
+      future: getStudent(userId.toString()),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            color: const Color(0xFFF8F9FA),
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final student = snapshot.data ?? AuthState.currentStudent;
+        return _buildBody(student: student);
+      },
+    );
+  }
+
+  Widget _buildBody({Student? student}) {
     final user = AuthState.currentUser;
 
     return Container(
@@ -43,11 +66,8 @@ class _StudentDashboard extends StatelessWidget {
               style: const TextStyle(fontSize: 14, color: Color(0xFF717182)),
             ),
             const SizedBox(height: 24),
-            Row(
-              children: [
-                //TODO:Implement the progress stuff based on the student's progres.
-              ],
-            ),
+            if (student != null) _ProgressCard(student: student),
+            if (student != null) const SizedBox(height: 24),
             Row(
               children: [
                 Expanded(
@@ -206,6 +226,128 @@ class _MentorDashboard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ProgressCard extends StatelessWidget {
+  final Student student;
+
+  const _ProgressCard({required this.student});
+
+  @override
+  Widget build(BuildContext context) {
+    const stages = ['Resume', 'Application', 'Offer Letter'];
+    const progressValues = ['resume', 'appliation', 'offer_letter'];
+
+    final currentIndex = progressValues.indexOf(student.progress);
+    if (currentIndex < 0) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFFE0E0E0).withValues(alpha: 0.5),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Application Progress',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1A1A1A),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: List.generate(stages.length * 2 - 1, (index) {
+              if (index.isOdd) {
+                final leftStageIndex = index ~/ 2;
+                final lineCompleted = leftStageIndex < currentIndex;
+                return Expanded(
+                  child: Container(
+                    height: 2,
+                    color: lineCompleted
+                        ? const Color(0xFF2E7D32)
+                        : const Color(0xFFE0E0E0),
+                  ),
+                );
+              }
+              final stageIndex = index ~/ 2;
+              return _StageIndicator(
+                number: stageIndex + 1,
+                label: stages[stageIndex],
+                isActive: stageIndex == currentIndex,
+                isCompleted: stageIndex < currentIndex,
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StageIndicator extends StatelessWidget {
+  final int number;
+  final String label;
+  final bool isActive;
+  final bool isCompleted;
+
+  const _StageIndicator({
+    required this.number,
+    required this.label,
+    required this.isActive,
+    required this.isCompleted,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final circleColor = isCompleted
+        ? const Color(0xFF2E7D32)
+        : isActive
+        ? const Color(0xFF030213)
+        : const Color(0xFFE0E0E0);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(color: circleColor, shape: BoxShape.circle),
+          child: Center(
+            child: isCompleted
+                ? const Icon(Icons.check, color: Colors.white, size: 18)
+                : Text(
+                    '$number',
+                    style: TextStyle(
+                      color: isActive ? Colors.white : const Color(0xFF9E9E9E),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+            color: isActive
+                ? const Color(0xFF1A1A1A)
+                : isCompleted
+                ? const Color(0xFF2E7D32)
+                : const Color(0xFF9E9E9E),
+          ),
+        ),
+      ],
     );
   }
 }

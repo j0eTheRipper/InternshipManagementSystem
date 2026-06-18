@@ -59,6 +59,11 @@ class AuthState {
     }
   }
 
+  static void updateStudentData(Student student) {
+    _currentStudent = student;
+    _currentUser = student.user;
+  }
+
   static Future<void> logout() async {
     _currentUser = null;
     _currentStudent = null;
