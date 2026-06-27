@@ -7,10 +7,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AuthState {
   static User? _currentUser;
   static Student? _currentStudent;
+  static String? _token;
   static bool _isLoggedIn = false;
 
   static User? get currentUser => _currentUser;
   static Student? get currentStudent => _currentStudent;
+  static String? get token => _token;
   static bool get isLoggedIn => _isLoggedIn;
 
   static String get currentRole {
@@ -23,6 +25,7 @@ class AuthState {
 
   static Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
+    _token = prefs.getString('auth_token');
     final userJson = prefs.getString('user_json');
     if (userJson == null) return;
 
@@ -38,10 +41,13 @@ class AuthState {
       _isLoggedIn = true;
     } catch (_) {
       await prefs.remove('user_json');
+      await prefs.remove('auth_token');
+      _token = null;
     }
   }
 
-  static Future<void> login(dynamic user) async {
+  static Future<void> login(dynamic user, {required String token}) async {
+    _token = token;
     if (user is Student) {
       _currentStudent = user;
       _currentUser = user.user;
@@ -57,6 +63,7 @@ class AuthState {
     } else if (user is User) {
       await prefs.setString('user_json', jsonEncode(user.toJson()));
     }
+    await prefs.setString('auth_token', token);
   }
 
   static void updateStudentData(Student student) {
@@ -67,9 +74,11 @@ class AuthState {
   static Future<void> logout() async {
     _currentUser = null;
     _currentStudent = null;
+    _token = null;
     _isLoggedIn = false;
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('user_json');
+    await prefs.remove('auth_token');
   }
 }

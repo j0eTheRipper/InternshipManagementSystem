@@ -32,11 +32,11 @@ class _LoginState extends State<Login> {
     setState(() => _isLoading = true);
 
     try {
-      final loggedInUser = await login(
+      final result = await login(
         _emailController.text,
         _passwordController.text,
       );
-      AuthState.login(loggedInUser);
+      AuthState.login(result.user, token: result.token);
 
       if (mounted) {
         context.go('/dashboard');
