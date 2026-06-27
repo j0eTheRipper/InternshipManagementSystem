@@ -5,7 +5,9 @@ import 'package:internship_management_system/dashboard/dashboard_layout.dart';
 import 'package:internship_management_system/dashboard/pages/chat_page.dart';
 import 'package:internship_management_system/dashboard/pages/companies_page.dart';
 import 'package:internship_management_system/dashboard/pages/dashboard_page.dart';
+import 'package:internship_management_system/dashboard/pages/notifications_page.dart';
 import 'package:internship_management_system/dashboard/pages/profile_page.dart';
+import 'package:internship_management_system/dashboard/pages/resume_page.dart';
 import 'package:internship_management_system/login_screen/login_screen.dart';
 
 final _router = GoRouter(
@@ -41,6 +43,14 @@ final _router = GoRouter(
         GoRoute(
           path: '/chat',
           builder: (context, state) => const ChatPage(),
+        ),
+        GoRoute(
+          path: '/resume',
+          builder: (context, state) => const ResumePage(),
+        ),
+        GoRoute(
+          path: '/notifications',
+          builder: (context, state) => const NotificationsPage(),
         ),
         GoRoute(
           path: '/profile',

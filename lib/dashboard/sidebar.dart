@@ -1,10 +1,43 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
+import 'package:internship_management_system/dashboard/notification_service.dart';
 import '../Widgets/nav_item.dart';
 
-class Sidebar extends StatelessWidget {
+class Sidebar extends StatefulWidget {
   const Sidebar({super.key});
+
+  @override
+  State<Sidebar> createState() => _SidebarState();
+}
+
+class _SidebarState extends State<Sidebar> {
+  int _unreadCount = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _unreadCount = NotificationService.instance.unreadCount;
+    NotificationService.instance.addListener(_onUnreadChanged);
+    NotificationService.instance.fetchUnread();
+    _timer = Timer.periodic(const Duration(seconds: 30), (_) => NotificationService.instance.fetchUnread());
+  }
+
+  void _onUnreadChanged() {
+    if (mounted) {
+      setState(() => _unreadCount = NotificationService.instance.unreadCount);
+    }
+  }
+
+  @override
+  void dispose() {
+    NotificationService.instance.removeListener(_onUnreadChanged);
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +107,12 @@ class Sidebar extends StatelessWidget {
                   route: '/chat',
                 ),
                 NavItem(
+                  icon: Icons.description_outlined,
+                  label: 'Resume',
+                  route: '/resume',
+                ),
+                _NotificationNavItem(unreadCount: _unreadCount),
+                NavItem(
                   icon: Icons.person_rounded,
                   label: 'Profile',
                   route: '/profile',
@@ -104,6 +143,78 @@ class Sidebar extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _NotificationNavItem extends StatelessWidget {
+  final int unreadCount;
+
+  const _NotificationNavItem({required this.unreadCount});
+
+  @override
+  Widget build(BuildContext context) {
+    final currentRoute = GoRouterState.of(context).uri.toString();
+    final isActive = currentRoute == '/notifications';
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: () => context.go('/notifications'),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              color: isActive ? const Color(0xFF030213) : Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.notifications_rounded,
+                  size: 20,
+                  color: isActive ? Colors.white : const Color(0xFF717182),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Notifications',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: isActive ? Colors.white : const Color(0xFF1A1A1A),
+                  ),
+                ),
+                const Spacer(),
+                if (unreadCount > 0)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? Colors.white
+                          : const Color(0xFFE53935),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      unreadCount > 99 ? '99+' : '$unreadCount',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: isActive
+                            ? const Color(0xFFE53935)
+                            : Colors.white,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
