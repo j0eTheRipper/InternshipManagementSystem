@@ -107,27 +107,6 @@ class _StudentDashboard extends StatelessWidget {
                 color: Color(0xFF1A1A1A),
               ),
             ),
-            const SizedBox(height: 16),
-            _OpportunityCard(
-              company: 'Tech Corp',
-              role: 'Software Engineering Intern',
-              location: 'Remote',
-              match: '92% match',
-            ),
-            const SizedBox(height: 12),
-            _OpportunityCard(
-              company: 'DataFlow Inc',
-              role: 'Data Science Intern',
-              location: 'New York, NY',
-              match: '85% match',
-            ),
-            const SizedBox(height: 12),
-            _OpportunityCard(
-              company: 'DesignLab',
-              role: 'UI/UX Design Intern',
-              location: 'San Francisco, CA',
-              match: '78% match',
-            ),
           ],
         ),
       ),
@@ -238,7 +217,7 @@ class _ProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const stages = ['Resume', 'Application', 'Offer Letter'];
-    const progressValues = ['resume', 'appliation', 'offer_letter'];
+    const progressValues = ['resume', 'application', 'offer_letter'];
 
     final currentIndex = progressValues.indexOf(student.progress);
     if (currentIndex < 0) return const SizedBox.shrink();
