@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:internship_management_system/models/headhunter.dart';
 import 'package:internship_management_system/models/student.dart';
 import 'package:internship_management_system/models/user.dart';
 
@@ -25,9 +26,14 @@ Future<LoginResult> login(String email, String password) async {
     final userJson = json['user'] as Map<String, dynamic>;
     final role = json['role'] as String;
 
-    final user = role == 'student'
-        ? Student.fromJson(userJson)
-        : User.fromJson(userJson);
+    dynamic user;
+    if (role == 'student') {
+      user = Student.fromJson(userJson);
+    } else if (role == 'headhunter') {
+      user = Headhunter.fromJson(userJson);
+    } else {
+      user = User.fromJson(userJson);
+    }
 
     return LoginResult(user: user, token: token);
   }

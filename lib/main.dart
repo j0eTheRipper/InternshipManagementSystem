@@ -3,9 +3,13 @@ import 'package:go_router/go_router.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/dashboard/dashboard_layout.dart';
 import 'package:internship_management_system/dashboard/pages/chat_page.dart';
-import 'package:internship_management_system/dashboard/pages/companies_page.dart';
 import 'package:internship_management_system/dashboard/pages/dashboard_page.dart';
+import 'package:internship_management_system/dashboard/pages/headhunter_postings_page.dart';
+import 'package:internship_management_system/dashboard/pages/headhunter_register_page.dart';
+import 'package:internship_management_system/dashboard/pages/my_applications_page.dart';
 import 'package:internship_management_system/dashboard/pages/notifications_page.dart';
+import 'package:internship_management_system/dashboard/pages/opportunities_page.dart';
+import 'package:internship_management_system/dashboard/pages/opportunity_detail_page.dart';
 import 'package:internship_management_system/dashboard/pages/profile_page.dart';
 import 'package:internship_management_system/dashboard/pages/resume_page.dart';
 import 'package:internship_management_system/login_screen/login_screen.dart';
@@ -15,11 +19,12 @@ final _router = GoRouter(
   redirect: (context, state) {
     final isLoggedIn = AuthState.isLoggedIn;
     final isLoginRoute = state.matchedLocation == '/login';
+    final isRegisterRoute = state.matchedLocation == '/register/headhunter';
 
-    if (!isLoggedIn && !isLoginRoute) {
+    if (!isLoggedIn && !isLoginRoute && !isRegisterRoute) {
       return '/login';
     }
-    if (isLoggedIn && isLoginRoute) {
+    if (isLoggedIn && (isLoginRoute || isRegisterRoute)) {
       return '/dashboard';
     }
     return null;
@@ -29,6 +34,10 @@ final _router = GoRouter(
       path: '/login',
       builder: (context, state) => const Login(),
     ),
+    GoRoute(
+      path: '/register/headhunter',
+      builder: (context, state) => const HeadhunterRegisterPage(),
+    ),
     ShellRoute(
       builder: (context, state, child) => DashboardLayout(child: child),
       routes: [
@@ -37,8 +46,23 @@ final _router = GoRouter(
           builder: (context, state) => const DashboardPage(),
         ),
         GoRoute(
-          path: '/companies',
-          builder: (context, state) => const CompaniesPage(),
+          path: '/opportunities',
+          builder: (context, state) => const OpportunitiesPage(),
+        ),
+        GoRoute(
+          path: '/opportunities/:id',
+          builder: (context, state) {
+            final id = int.parse(state.pathParameters['id']!);
+            return OpportunityDetailPage(opportunityId: id);
+          },
+        ),
+        GoRoute(
+          path: '/my-applications',
+          builder: (context, state) => const MyApplicationsPage(),
+        ),
+        GoRoute(
+          path: '/headhunter/postings',
+          builder: (context, state) => const HeadhunterPostingsPage(),
         ),
         GoRoute(
           path: '/chat',

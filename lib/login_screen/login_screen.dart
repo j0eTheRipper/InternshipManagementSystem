@@ -137,7 +137,19 @@ class _LoginState extends State<Login> {
                         : const Text('Sign In', style: TextStyle(fontSize: 16)),
                   ),
                 ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () => context.go('/register/headhunter'),
+                  child: const Text(
+                    'Register as a headhunter',
+                    style: TextStyle(
+                      color: Color(0xFF030213),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(

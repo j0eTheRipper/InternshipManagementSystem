@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:internship_management_system/api/application.dart';
+import 'package:internship_management_system/api/opportunity.dart';
 import 'package:internship_management_system/api/student.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
+import 'package:internship_management_system/models/opportunity.dart';
 import 'package:internship_management_system/models/student.dart';
 
 class DashboardPage extends StatelessWidget {
@@ -8,40 +12,77 @@ class DashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AuthState.isStudent
-        ? const _StudentDashboard()
-        : const _MentorDashboard();
+    if (AuthState.isStudent) {
+      return const _StudentDashboard();
+    } else if (AuthState.isHeadhunter) {
+      return const _HeadhunterDashboard();
+    }
+    return const _MentorDashboard();
   }
 }
 
-class _StudentDashboard extends StatelessWidget {
+class _StudentDashboard extends StatefulWidget {
   const _StudentDashboard();
 
   @override
-  Widget build(BuildContext context) {
-    final userId = AuthState.currentUser?.userId;
-    if (userId == null) {
-      return _buildBody(student: null);
-    }
+  State<_StudentDashboard> createState() => _StudentDashboardState();
+}
 
-    return FutureBuilder<Student>(
-      future: getStudent(userId.toString()),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Container(
-            color: const Color(0xFFF8F9FA),
-            child: const Center(child: CircularProgressIndicator()),
-          );
-        }
+class _StudentDashboardState extends State<_StudentDashboard> {
+  Student? _student;
+  List<Opportunity> _opportunities = [];
+  int _applicationCount = 0;
+  bool _loading = true;
 
-        final student = snapshot.data ?? AuthState.currentStudent;
-        return _buildBody(student: student);
-      },
-    );
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
   }
 
-  Widget _buildBody({Student? student}) {
+  Future<void> _fetchData() async {
+    final userId = AuthState.currentUser?.userId;
+    if (userId == null) {
+      if (mounted) setState(() => _loading = false);
+      return;
+    }
+
+    try {
+      final results = await Future.wait([
+        getStudent(userId.toString()),
+        getOpportunities(),
+        getMyApplications(),
+      ]);
+      if (mounted) {
+        setState(() {
+          _student = results[0] as Student;
+          _opportunities = results[1] as List<Opportunity>;
+          _applicationCount = (results[2] as List).length;
+          _loading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _student = AuthState.currentStudent;
+          _loading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return Container(
+        color: const Color(0xFFF8F9FA),
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final user = AuthState.currentUser;
+    final student = _student;
+    final recent = _opportunities.take(5).toList();
 
     return Container(
       color: const Color(0xFFF8F9FA),
@@ -74,7 +115,7 @@ class _StudentDashboard extends StatelessWidget {
                   child: _StatCard(
                     icon: Icons.work_outline,
                     label: 'Applications',
-                    value: '3',
+                    value: '$_applicationCount',
                     color: const Color(0xFF030213),
                   ),
                 ),
@@ -83,7 +124,7 @@ class _StudentDashboard extends StatelessWidget {
                   child: _StatCard(
                     icon: Icons.check_circle_outline,
                     label: 'Active',
-                    value: '1',
+                    value: '${_opportunities.length}',
                     color: const Color(0xFF2E7D32),
                   ),
                 ),
@@ -99,15 +140,152 @@ class _StudentDashboard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 32),
-            const Text(
-              'Recent Opportunities',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1A1A1A),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Recent Opportunities',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1A1A1A),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => context.go('/opportunities'),
+                  child: const Text('View all'),
+                ),
+              ],
             ),
+            const SizedBox(height: 8),
+            if (recent.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(
+                  child: Text(
+                    'No opportunities available yet.',
+                    style: TextStyle(fontSize: 14, color: Color(0xFF717182)),
+                  ),
+                ),
+              )
+            else
+              ...recent.map((opp) => _DashboardOpportunityCard(
+                company: opp.company ?? 'Unknown',
+                role: opp.jobRole,
+                title: opp.title,
+                location: opp.location,
+                status: opp.status,
+                onTap: () => context.go('/opportunities/${opp.opportunityId}'),
+              )),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DashboardOpportunityCard extends StatelessWidget {
+  final String company;
+  final String role;
+  final String title;
+  final String location;
+  final String status;
+  final VoidCallback onTap;
+
+  const _DashboardOpportunityCard({
+    required this.company,
+    required this.role,
+    required this.title,
+    required this.location,
+    required this.status,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Center(
+                  child: Text(
+                    company.isNotEmpty ? company[0].toUpperCase() : '?',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF030213),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1A1A1A),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '$company · $role',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF717182),
+                      ),
+                    ),
+                    Text(
+                      location,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF9E9E9E),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: status == 'remote'
+                      ? const Color(0xFFE8F5E9)
+                      : status == 'hybrid'
+                          ? const Color(0xFFFFF3E0)
+                          : const Color(0xFFE3F2FD),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  status[0].toUpperCase() + status.substring(1),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: status == 'remote'
+                        ? const Color(0xFF2E7D32)
+                        : status == 'hybrid'
+                            ? const Color(0xFFE65100)
+                            : const Color(0xFF1565C0),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -475,6 +653,72 @@ class _OpportunityCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _HeadhunterDashboard extends StatelessWidget {
+  const _HeadhunterDashboard();
+
+  @override
+  Widget build(BuildContext context) {
+    final user = AuthState.currentUser;
+    final headhunter = AuthState.currentHeadhunter;
+
+    return Container(
+      color: const Color(0xFFF8F9FA),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Welcome, ${user?.fullname ?? 'Headhunter'}',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1A1A1A),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${headhunter?.company ?? 'Your Company'} · Headhunter Dashboard',
+              style: const TextStyle(fontSize: 14, color: Color(0xFF717182)),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: _StatCard(
+                    icon: Icons.post_add_rounded,
+                    label: 'Active Postings',
+                    value: '-',
+                    color: const Color(0xFF030213),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _StatCard(
+                    icon: Icons.people_outlined,
+                    label: 'Total Applicants',
+                    value: '-',
+                    color: const Color(0xFF1565C0),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _StatCard(
+                    icon: Icons.check_circle_outline,
+                    label: 'Accepted',
+                    value: '-',
+                    color: const Color(0xFF2E7D32),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

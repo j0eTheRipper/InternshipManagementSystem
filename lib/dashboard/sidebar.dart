@@ -43,7 +43,17 @@ class _SidebarState extends State<Sidebar> {
   Widget build(BuildContext context) {
     final role = AuthState.currentRole;
     final isStudent = role == 'student';
+    final isHeadhunter = role == 'headhunter';
     final userName = AuthState.currentUser?.fullname ?? '';
+
+    String roleLabel;
+    if (isStudent) {
+      roleLabel = 'Student';
+    } else if (isHeadhunter) {
+      roleLabel = 'Headhunter';
+    } else {
+      roleLabel = 'University Mentor';
+    }
 
     return Container(
       width: 260,
@@ -81,7 +91,7 @@ class _SidebarState extends State<Sidebar> {
                         ),
                       ),
                       Text(
-                        isStudent ? 'Student' : 'University Mentor',
+                        roleLabel,
                         style: const TextStyle(
                           fontSize: 13,
                           color: Color(0xFF717182),
@@ -96,21 +106,37 @@ class _SidebarState extends State<Sidebar> {
                   label: 'Dashboard',
                   route: '/dashboard',
                 ),
-                NavItem(
-                  icon: Icons.business_rounded,
-                  label: 'Companies',
-                  route: '/companies',
-                ),
-                NavItem(
-                  icon: Icons.chat_rounded,
-                  label: 'Chat',
-                  route: '/chat',
-                ),
-                NavItem(
-                  icon: Icons.description_outlined,
-                  label: 'Resume',
-                  route: '/resume',
-                ),
+                if (isStudent) ...[
+                  NavItem(
+                    icon: Icons.business_rounded,
+                    label: 'Opportunities',
+                    route: '/opportunities',
+                  ),
+                  NavItem(
+                    icon: Icons.assignment_rounded,
+                    label: 'My Applications',
+                    route: '/my-applications',
+                  ),
+                  NavItem(
+                    icon: Icons.description_outlined,
+                    label: 'Resume',
+                    route: '/resume',
+                  ),
+                ],
+                if (isHeadhunter) ...[
+                  NavItem(
+                    icon: Icons.post_add_rounded,
+                    label: 'My Postings',
+                    route: '/headhunter/postings',
+                  ),
+                ],
+                if (!isStudent && !isHeadhunter) ...[
+                  NavItem(
+                    icon: Icons.description_outlined,
+                    label: 'Resume',
+                    route: '/resume',
+                  ),
+                ],
                 _NotificationNavItem(unreadCount: _unreadCount),
                 NavItem(
                   icon: Icons.person_rounded,
