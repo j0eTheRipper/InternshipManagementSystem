@@ -136,6 +136,11 @@ class _SidebarState extends State<Sidebar> {
                     label: 'Resume',
                     route: '/resume',
                   ),
+                  NavItem(
+                    icon: Icons.mail_outline_rounded,
+                    label: 'Offer Letters',
+                    route: '/mentor/offer-letters',
+                  ),
                 ],
                 _NotificationNavItem(unreadCount: _unreadCount),
                 NavItem(

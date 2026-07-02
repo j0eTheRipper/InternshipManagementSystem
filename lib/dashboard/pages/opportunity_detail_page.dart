@@ -1,6 +1,8 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:internship_management_system/api/application.dart';
+import 'package:internship_management_system/api/offer_letter.dart' as ol;
 import 'package:internship_management_system/api/opportunity.dart';
 import 'package:internship_management_system/api/resume.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
@@ -24,7 +26,11 @@ class _OpportunityDetailPageState extends State<OpportunityDetailPage> {
   bool _applying = false;
   bool _alreadyApplied = false;
   ResumeData? _appliedResume;
+  dynamic _matchedApplication;
   bool _openingPdf = false;
+  bool _uploadingOfferLetter = false;
+  Map<String, dynamic>? _offerLetter;
+  bool _downloadingOfferLetter = false;
 
   @override
   void initState() {
@@ -45,10 +51,16 @@ class _OpportunityDetailPageState extends State<OpportunityDetailPage> {
       if (match.isNotEmpty) {
         _alreadyApplied = true;
         final app = match.first;
+        _matchedApplication = app;
         final resumes = await getResume();
         final matched = resumes.where((r) => r.resumeId == app.resumeId);
         if (matched.isNotEmpty) {
           _appliedResume = matched.first;
+        }
+        try {
+          _offerLetter = await ol.getOfferLetterByApplication(app.applicationId);
+        } catch (_) {
+          _offerLetter = null;
         }
       }
     } catch (e) {
@@ -113,6 +125,152 @@ class _OpportunityDetailPageState extends State<OpportunityDetailPage> {
       }
     }
     if (mounted) setState(() => _openingPdf = false);
+  }
+
+  Future<void> _uploadOfferLetter() async {
+    final result = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'png', 'jpg', 'jpeg'],
+      withData: true,
+    );
+    if (result == null) return;
+
+    final file = result.files.single;
+    if (file.bytes == null) return;
+
+    if (file.bytes!.length > 5 * 1024 * 1024) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('File exceeds 5MB limit'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    setState(() => _uploadingOfferLetter = true);
+    try {
+      await ol.uploadOfferLetter(
+        applicationId: _matchedApplication.applicationId,
+        fileBytes: file.bytes!,
+        fileName: file.name,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Offer letter uploaded!')),
+        );
+        _fetch();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _uploadingOfferLetter = false);
+    }
+  }
+
+  Future<void> _viewOfferLetterPdf() async {
+    if (_offerLetter == null || _downloadingOfferLetter) return;
+    setState(() => _downloadingOfferLetter = true);
+    try {
+      final bytes = await ol.downloadOfferLetter(_offerLetter!['offer_letter_id'] as int);
+      openPdfInBrowser(bytes, fileName: 'offer_letter_${_offerLetter!['offer_letter_id']}.pdf');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
+    }
+    if (mounted) setState(() => _downloadingOfferLetter = false);
+  }
+
+  Widget _buildOfferLetterStatus() {
+    final status = _matchedApplication.status as String;
+    switch (status) {
+      case 'pending':
+        return SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: _uploadingOfferLetter ? null : _uploadOfferLetter,
+            icon: _uploadingOfferLetter
+                ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Icon(Icons.upload_file, size: 18),
+            label: const Text('Upload Offer Letter'),
+          ),
+        );
+      case 'uploaded':
+        return InkWell(
+          onTap: _viewOfferLetterPdf,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                const Icon(Icons.description_outlined, size: 18, color: Color(0xFF717182)),
+                const SizedBox(width: 8),
+                Text(
+                  'Offer Letter',
+                  style: const TextStyle(fontSize: 14, color: Color(0xFF1A1A1A)),
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF3E0),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text(
+                    'Awaiting review',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFE65100)),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  _downloadingOfferLetter ? Icons.hourglass_top : Icons.open_in_new,
+                  size: 16,
+                  color: const Color(0xFF717182),
+                ),
+              ],
+            ),
+          ),
+        );
+      case 'accepted':
+        return const Row(
+          children: [
+            Icon(Icons.verified, size: 18, color: Color(0xFF2E7D32)),
+            SizedBox(width: 8),
+            Text(
+              'Offer letter approved',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF2E7D32)),
+            ),
+          ],
+        );
+      case 'rejected':
+        return const Row(
+          children: [
+            Icon(Icons.cancel_outlined, size: 18, color: Color(0xFFC62828)),
+            SizedBox(width: 8),
+            Text(
+              'Offer letter rejected',
+              style: TextStyle(fontSize: 14, color: Color(0xFFC62828)),
+            ),
+          ],
+        );
+      default:
+        return const SizedBox.shrink();
+    }
   }
 
   @override
@@ -270,6 +428,12 @@ class _OpportunityDetailPageState extends State<OpportunityDetailPage> {
                             ),
                           ),
                         ),
+                      ],
+                      if (_matchedApplication != null) ...[
+                        const SizedBox(height: 12),
+                        const Divider(height: 1),
+                        const SizedBox(height: 12),
+                        _buildOfferLetterStatus(),
                       ],
                     ],
                   ),

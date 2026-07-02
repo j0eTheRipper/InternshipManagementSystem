@@ -45,6 +45,7 @@ class _MyApplicationsPageState extends State<MyApplicationsPage> {
       case 'accepted': return const Color(0xFF2E7D32);
       case 'rejected': return const Color(0xFFC62828);
       case 'interview': return const Color(0xFFE65100);
+      case 'uploaded': return const Color(0xFFFF8F00);
       default: return const Color(0xFF9E9E9E);
     }
   }

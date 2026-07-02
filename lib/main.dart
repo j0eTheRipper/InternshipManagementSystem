@@ -10,6 +10,7 @@ import 'package:internship_management_system/dashboard/pages/my_applications_pag
 import 'package:internship_management_system/dashboard/pages/notifications_page.dart';
 import 'package:internship_management_system/dashboard/pages/opportunities_page.dart';
 import 'package:internship_management_system/dashboard/pages/opportunity_detail_page.dart';
+import 'package:internship_management_system/dashboard/pages/mentor_offer_letters_page.dart';
 import 'package:internship_management_system/dashboard/pages/profile_page.dart';
 import 'package:internship_management_system/dashboard/pages/resume_page.dart';
 import 'package:internship_management_system/login_screen/login_screen.dart';
@@ -71,6 +72,10 @@ final _router = GoRouter(
         GoRoute(
           path: '/resume',
           builder: (context, state) => const ResumePage(),
+        ),
+        GoRoute(
+          path: '/mentor/offer-letters',
+          builder: (context, state) => const MentorOfferLettersPage(),
         ),
         GoRoute(
           path: '/notifications',
