@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:internship_management_system/login_screen/login_screen.dart';
+import 'package:internship_management_system/pages/login_screen/login_screen.dart';
 
 void main() {
   group('Login Screen', () {

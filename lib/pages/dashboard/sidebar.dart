@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
-import 'package:internship_management_system/dashboard/notification_service.dart';
-import '../Widgets/nav_item.dart';
+import 'package:internship_management_system/notifications/notification_service.dart';
+import 'package:internship_management_system/Widgets/nav_item.dart';
 
 class Sidebar extends StatefulWidget {
   const Sidebar({super.key});
@@ -23,7 +23,10 @@ class _SidebarState extends State<Sidebar> {
     _unreadCount = NotificationService.instance.unreadCount;
     NotificationService.instance.addListener(_onUnreadChanged);
     NotificationService.instance.fetchUnread();
-    _timer = Timer.periodic(const Duration(seconds: 30), (_) => NotificationService.instance.fetchUnread());
+    _timer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => NotificationService.instance.fetchUnread(),
+    );
   }
 
   void _onUnreadChanged() {
@@ -226,9 +229,7 @@ class _NotificationNavItem extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: isActive
-                          ? Colors.white
-                          : const Color(0xFFE53935),
+                      color: isActive ? Colors.white : const Color(0xFFE53935),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(

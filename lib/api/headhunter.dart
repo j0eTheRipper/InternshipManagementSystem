@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/models/headhunter.dart';
-import 'package:internship_management_system/models/user.dart';
 
 const _baseUrl = 'http://localhost:8000';
 

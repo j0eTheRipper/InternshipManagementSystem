@@ -169,14 +169,17 @@ class _StudentDashboardState extends State<_StudentDashboard> {
                 ),
               )
             else
-              ...recent.map((opp) => _DashboardOpportunityCard(
-                company: opp.company ?? 'Unknown',
-                role: opp.jobRole,
-                title: opp.title,
-                location: opp.location,
-                status: opp.status,
-                onTap: () => context.go('/opportunities/${opp.opportunityId}'),
-              )),
+              ...recent.map(
+                (opp) => _DashboardOpportunityCard(
+                  company: opp.company ?? 'Unknown',
+                  role: opp.jobRole,
+                  title: opp.title,
+                  location: opp.location,
+                  status: opp.status,
+                  onTap: () =>
+                      context.go('/opportunities/${opp.opportunityId}'),
+                ),
+              ),
           ],
         ),
       ),
@@ -267,8 +270,8 @@ class _DashboardOpportunityCard extends StatelessWidget {
                   color: status == 'remote'
                       ? const Color(0xFFE8F5E9)
                       : status == 'hybrid'
-                          ? const Color(0xFFFFF3E0)
-                          : const Color(0xFFE3F2FD),
+                      ? const Color(0xFFFFF3E0)
+                      : const Color(0xFFE3F2FD),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -279,8 +282,8 @@ class _DashboardOpportunityCard extends StatelessWidget {
                     color: status == 'remote'
                         ? const Color(0xFF2E7D32)
                         : status == 'hybrid'
-                            ? const Color(0xFFE65100)
-                            : const Color(0xFF1565C0),
+                        ? const Color(0xFFE65100)
+                        : const Color(0xFF1565C0),
                   ),
                 ),
               ),
@@ -554,103 +557,6 @@ class _StatCard extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontSize: 13, color: Color(0xFF717182)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _OpportunityCard extends StatelessWidget {
-  final String company;
-  final String role;
-  final String location;
-  final String match;
-
-  const _OpportunityCard({
-    required this.company,
-    required this.role,
-    required this.location,
-    required this.match,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFFE0E0E0).withValues(alpha: 0.5),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(
-              child: Text(
-                company[0],
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF030213),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  company,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF1A1A1A),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  role,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF717182),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  location,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF9E9E9E),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8F5E9),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              match,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF2E7D32),
-              ),
-            ),
           ),
         ],
       ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:internship_management_system/api/notification.dart';
-import 'package:internship_management_system/dashboard/notification_service.dart';
+import 'package:internship_management_system/notifications/notification_service.dart';
 import 'package:internship_management_system/models/notification.dart';
 
 class NotificationsPage extends StatefulWidget {
@@ -94,10 +94,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
             SizedBox(height: 12),
             Text(
               'No notifications yet',
-              style: TextStyle(
-                fontSize: 14,
-                color: Color(0xFF717182),
-              ),
+              style: TextStyle(fontSize: 14, color: Color(0xFF717182)),
             ),
           ],
         ),
@@ -149,8 +146,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         notification.message,
                         style: TextStyle(
                           fontSize: 14,
-                          fontWeight:
-                              isUnread ? FontWeight.w600 : FontWeight.w400,
+                          fontWeight: isUnread
+                              ? FontWeight.w600
+                              : FontWeight.w400,
                           color: const Color(0xFF1A1A1A),
                         ),
                       ),

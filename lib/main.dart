@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
-import 'package:internship_management_system/dashboard/dashboard_layout.dart';
-import 'package:internship_management_system/dashboard/pages/chat_page.dart';
-import 'package:internship_management_system/dashboard/pages/dashboard_page.dart';
-import 'package:internship_management_system/dashboard/pages/headhunter_postings_page.dart';
-import 'package:internship_management_system/dashboard/pages/headhunter_register_page.dart';
-import 'package:internship_management_system/dashboard/pages/my_applications_page.dart';
-import 'package:internship_management_system/dashboard/pages/notifications_page.dart';
-import 'package:internship_management_system/dashboard/pages/opportunities_page.dart';
-import 'package:internship_management_system/dashboard/pages/opportunity_detail_page.dart';
-import 'package:internship_management_system/dashboard/pages/mentor_offer_letters_page.dart';
-import 'package:internship_management_system/dashboard/pages/profile_page.dart';
-import 'package:internship_management_system/dashboard/pages/resume_page.dart';
-import 'package:internship_management_system/login_screen/login_screen.dart';
+import 'package:internship_management_system/pages/dashboard/dashboard_layout.dart';
+import 'package:internship_management_system/pages/chat/chat_page.dart';
+import 'package:internship_management_system/pages/dashboard/pages/dashboard_page.dart';
+import 'package:internship_management_system/pages/headhunter/headhunter_postings_page.dart';
+import 'package:internship_management_system/pages/headhunter/headhunter_register_page.dart';
+import 'package:internship_management_system/pages/applications/my_applications_page.dart';
+import 'package:internship_management_system/notifications/notifications_page.dart';
+import 'package:internship_management_system/pages/opportunities/opportunities_page.dart';
+import 'package:internship_management_system/pages/opportunities/opportunity_detail_page.dart';
+import 'package:internship_management_system/pages/offer_letter/mentor_offer_letters_page.dart';
+import 'package:internship_management_system/pages/profile/profile_page.dart';
+import 'package:internship_management_system/pages/resume/resume_page.dart';
+import 'package:internship_management_system/pages/login_screen/login_screen.dart';
 
 final _router = GoRouter(
   initialLocation: '/login',
@@ -31,10 +31,7 @@ final _router = GoRouter(
     return null;
   },
   routes: [
-    GoRoute(
-      path: '/login',
-      builder: (context, state) => const Login(),
-    ),
+    GoRoute(path: '/login', builder: (context, state) => const Login()),
     GoRoute(
       path: '/register/headhunter',
       builder: (context, state) => const HeadhunterRegisterPage(),
@@ -65,10 +62,7 @@ final _router = GoRouter(
           path: '/headhunter/postings',
           builder: (context, state) => const HeadhunterPostingsPage(),
         ),
-        GoRoute(
-          path: '/chat',
-          builder: (context, state) => const ChatPage(),
-        ),
+        GoRoute(path: '/chat', builder: (context, state) => const ChatPage()),
         GoRoute(
           path: '/resume',
           builder: (context, state) => const ResumePage(),

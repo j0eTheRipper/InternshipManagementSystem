@@ -22,13 +22,20 @@ class _OpportunitiesPageState extends State<OpportunitiesPage> {
   }
 
   Future<void> _fetch() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       _opportunities = await getOpportunities();
     } catch (e) {
       _error = e.toString();
     }
-    if (mounted) setState(() { _loading = false; });
+    if (mounted) {
+      setState(() {
+        _loading = false;
+      });
+    }
   }
 
   @override
@@ -59,9 +66,7 @@ class _OpportunitiesPageState extends State<OpportunitiesPage> {
               ],
             ),
           ),
-          Expanded(
-            child: _buildContent(),
-          ),
+          Expanded(child: _buildContent()),
         ],
       ),
     );
@@ -189,13 +194,16 @@ class _OpportunityCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: status == 'remote'
                       ? const Color(0xFFE8F5E9)
                       : status == 'hybrid'
-                          ? const Color(0xFFFFF3E0)
-                          : const Color(0xFFE3F2FD),
+                      ? const Color(0xFFFFF3E0)
+                      : const Color(0xFFE3F2FD),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -206,8 +214,8 @@ class _OpportunityCard extends StatelessWidget {
                     color: status == 'remote'
                         ? const Color(0xFF2E7D32)
                         : status == 'hybrid'
-                            ? const Color(0xFFE65100)
-                            : const Color(0xFF1565C0),
+                        ? const Color(0xFFE65100)
+                        : const Color(0xFF1565C0),
                   ),
                 ),
               ),
