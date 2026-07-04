@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:internship_management_system/api/application.dart';
 import 'package:internship_management_system/api/opportunity.dart';
+import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/models/application.dart';
 import 'package:internship_management_system/models/opportunity.dart';
 
@@ -14,7 +15,7 @@ class MyApplicationsPage extends StatefulWidget {
 
 class _MyApplicationsPageState extends State<MyApplicationsPage> {
   List<Application>? _applications;
-  Map<int, Opportunity> _opportunities = {};
+  final Map<int, Opportunity> _opportunities = {};
   bool _loading = true;
   String? _error;
 
@@ -30,9 +31,11 @@ class _MyApplicationsPageState extends State<MyApplicationsPage> {
       final apps = await getMyApplications();
       _applications = apps;
       for (final app in apps) {
-        try {
-          _opportunities[app.opportunityId] = await getOpportunity(app.opportunityId);
-        } catch (_) {}
+        if (!app.isExternal && app.opportunityId != null) {
+          try {
+            _opportunities[app.opportunityId!] = await getOpportunity(app.opportunityId!);
+          } catch (_) {}
+        }
       }
     } catch (e) {
       _error = e.toString();
@@ -52,9 +55,16 @@ class _MyApplicationsPageState extends State<MyApplicationsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFFF8F9FA),
-      child: Column(
+    return Scaffold(
+      floatingActionButton: AuthState.isStudent
+          ? FloatingActionButton(
+              onPressed: () => context.go('/my-applications/external/new'),
+              backgroundColor: const Color(0xFF1565C0),
+              child: const Icon(Icons.add, color: Colors.white),
+            )
+          : null,
+      backgroundColor: const Color(0xFFF8F9FA),
+      body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Padding(
@@ -89,36 +99,71 @@ class _MyApplicationsPageState extends State<MyApplicationsPage> {
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      itemCount: _applications!.length,
-      itemBuilder: (context, index) {
-        final app = _applications![index];
-        final opp = _opportunities[app.opportunityId];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            title: Text(opp?.title ?? 'Opportunity #${app.opportunityId}'),
-            subtitle: Text('${opp?.company ?? ''} · ${opp?.jobRole ?? ''}'),
-            trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: _statusColor(app.status).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(6),
+    return RefreshIndicator(
+      onRefresh: _fetch,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        itemCount: _applications!.length,
+        itemBuilder: (context, index) {
+          final app = _applications![index];
+          final opp = !app.isExternal ? _opportunities[app.opportunityId] : null;
+          return Card(
+            margin: const EdgeInsets.only(bottom: 12),
+            child: ListTile(
+              title: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      app.isExternal ? (app.jobTitle ?? 'External Application') : (opp?.title ?? 'Opportunity #${app.opportunityId}'),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (app.isExternal)
+                    Container(
+                      margin: const EdgeInsets.only(left: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1565C0).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text(
+                        'External',
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF1565C0)),
+                      ),
+                    ),
+                ],
               ),
-              child: Text(
-                app.status[0].toUpperCase() + app.status.substring(1),
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: _statusColor(app.status),
+              subtitle: Text(
+                app.isExternal
+                    ? '${app.companyName ?? ''} · ${app.jobTitle ?? ''}'
+                    : '${opp?.company ?? ''} · ${opp?.jobRole ?? ''}',
+              ),
+              trailing: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _statusColor(app.status).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  app.status[0].toUpperCase() + app.status.substring(1),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: _statusColor(app.status),
+                  ),
                 ),
               ),
+              onTap: () {
+                if (app.isExternal) {
+                  context.go('/my-applications/external/${app.applicationId}');
+                } else {
+                  context.go('/opportunities/${app.opportunityId}');
+                }
+              },
             ),
-            onTap: () => context.go('/opportunities/${app.opportunityId}'),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

@@ -7,6 +7,8 @@ import 'package:internship_management_system/pages/dashboard/pages/dashboard_pag
 import 'package:internship_management_system/pages/headhunter/headhunter_postings_page.dart';
 import 'package:internship_management_system/pages/headhunter/headhunter_register_page.dart';
 import 'package:internship_management_system/pages/applications/my_applications_page.dart';
+import 'package:internship_management_system/pages/applications/external_application_page.dart';
+import 'package:internship_management_system/pages/applications/external_application_detail_page.dart';
 import 'package:internship_management_system/notifications/notifications_page.dart';
 import 'package:internship_management_system/pages/opportunities/opportunities_page.dart';
 import 'package:internship_management_system/pages/opportunities/opportunity_detail_page.dart';
@@ -57,6 +59,17 @@ final _router = GoRouter(
         GoRoute(
           path: '/my-applications',
           builder: (context, state) => const MyApplicationsPage(),
+        ),
+        GoRoute(
+          path: '/my-applications/external/new',
+          builder: (context, state) => const ExternalApplicationPage(),
+        ),
+        GoRoute(
+          path: '/my-applications/external/:id',
+          builder: (context, state) {
+            final id = int.parse(state.pathParameters['id']!);
+            return ExternalApplicationDetailPage(applicationId: id);
+          },
         ),
         GoRoute(
           path: '/headhunter/postings',
