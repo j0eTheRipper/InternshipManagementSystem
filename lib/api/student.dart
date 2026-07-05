@@ -10,9 +10,7 @@ Future<Student> getStudent(String userId) async {
   final token = AuthState.token;
   final response = await http.get(
     Uri.parse('$_baseUrl/student?user_id=$userId'),
-    headers: {
-      if (token != null) 'Authorization': 'Bearer $token',
-    },
+    headers: {if (token != null) 'Authorization': 'Bearer $token'},
   );
 
   if (response.statusCode == 200) {
@@ -27,14 +25,27 @@ Future<Student> getStudent(String userId) async {
   throw Exception(json['detail'] ?? 'Failed to fetch student data');
 }
 
-Future<List<Student>> getMentorStudents({http.Client? client}) async {
-  final c = client ?? http.Client();
+Future<String?> getAcceptedCompany(String studentId) async {
   final token = AuthState.token;
+  final response = await http.get(
+    Uri.parse('$_baseUrl/students/$studentId/accepted-company'),
+    headers: {if (token != null) 'Authorization': 'Bearer $token'},
+  );
+
+  if (response.statusCode == 200) {
+    final json = jsonDecode(response.body);
+    return json['company'] as String?;
+  }
+
+  return null;
+}
+
+Future<List<Student>> getMentorStudents({http.Client? client}) async {
+  final token = AuthState.token;
+  final c = client ?? http.Client();
   final response = await c.get(
     Uri.parse('$_baseUrl/students'),
-    headers: {
-      if (token != null) 'Authorization': 'Bearer $token',
-    },
+    headers: {if (token != null) 'Authorization': 'Bearer $token'},
   );
 
   if (client == null) c.close();

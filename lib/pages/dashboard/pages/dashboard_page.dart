@@ -295,12 +295,72 @@ class _DashboardOpportunityCard extends StatelessWidget {
   }
 }
 
-class _MentorDashboard extends StatelessWidget {
+class _MentorDashboard extends StatefulWidget {
   const _MentorDashboard();
+
+  @override
+  State<_MentorDashboard> createState() => _MentorDashboardState();
+}
+
+class _MentorDashboardState extends State<_MentorDashboard> {
+  List<Student> _students = [];
+  Map<String, String?> _companyCache = {};
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchStudents();
+  }
+
+  Future<void> _fetchStudents() async {
+    try {
+      final students = await getMentorStudents();
+      final accepted = students.where((s) => s.progress == 'accepted');
+      final companies = <String, String?>{};
+      for (final s in accepted) {
+        try {
+          companies[s.studentId] = await getAcceptedCompany(s.studentId);
+        } catch (_) {}
+      }
+      if (mounted) {
+        setState(() {
+          _students = students;
+          _companyCache = companies;
+          _loading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  String _statusFromProgress(String progress) {
+    switch (progress) {
+      case 'resume':
+      case 'offer_letter':
+        return 'Pending Review';
+      default:
+        return 'Active';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final user = AuthState.currentUser;
+
+    final pendingCount =
+        _students.where((s) => _statusFromProgress(s.progress) == 'Pending Review').length;
+    final activeCount = _students.length - pendingCount;
+
+    if (_loading) {
+      return Container(
+        color: const Color(0xFFF8F9FA),
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
 
     return Container(
       color: const Color(0xFFF8F9FA),
@@ -329,7 +389,7 @@ class _MentorDashboard extends StatelessWidget {
                   child: _StatCard(
                     icon: Icons.people_outline,
                     label: 'Students',
-                    value: '5',
+                    value: '${_students.length}',
                     color: const Color(0xFF030213),
                   ),
                 ),
@@ -338,51 +398,66 @@ class _MentorDashboard extends StatelessWidget {
                   child: _StatCard(
                     icon: Icons.assignment_outlined,
                     label: 'Pending Reviews',
-                    value: '3',
+                    value: '$pendingCount',
                     color: const Color(0xFFE65100),
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: _StatCard(
-                    icon: Icons.event_note_outlined,
-                    label: 'This Month',
-                    value: '12',
-                    color: const Color(0xFF1565C0),
+                    icon: Icons.check_circle_outline,
+                    label: 'Active',
+                    value: '$activeCount',
+                    color: const Color(0xFF2E7D32),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 32),
-            const Text(
-              'Students Under Supervision',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1A1A1A),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'All Students',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1A1A1A),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => context.go('/mentor/student-documents'),
+                  child: const Text('Review documents'),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
-            _StudentCard(
-              name: 'Alice Johnson',
-              field: 'Computer Science',
-              year: 3,
-              status: 'Pending Review',
-            ),
-            const SizedBox(height: 12),
-            _StudentCard(
-              name: 'Bob Smith',
-              field: 'Software Engineering',
-              year: 2,
-              status: 'Active',
-            ),
-            const SizedBox(height: 12),
-            _StudentCard(
-              name: 'Carol Davis',
-              field: 'Data Science',
-              year: 3,
-              status: 'Active',
-            ),
+            if (_students.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(
+                  child: Text(
+                    'No students assigned yet.',
+                    style: TextStyle(fontSize: 14, color: Color(0xFF717182)),
+                  ),
+                ),
+              )
+            else
+              ..._students.map(
+                (student) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _StudentCard(
+                    name: student.user.fullname,
+                    field: student.fieldOfStudy,
+                    year: student.yearOfStudy,
+                    status: _statusFromProgress(student.progress),
+                    company: _companyCache[student.studentId],
+                    onTap: () => context.go(
+                      '/mentor/student-detail/${student.studentId}',
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -635,85 +710,99 @@ class _StudentCard extends StatelessWidget {
   final String field;
   final int year;
   final String status;
+  final String? company;
+  final VoidCallback? onTap;
 
   const _StudentCard({
     required this.name,
     required this.field,
     required this.year,
     required this.status,
+    this.company,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final isPending = status == 'Pending Review';
+    final showCompany = company != null && status == 'Active';
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFFE0E0E0).withValues(alpha: 0.5),
-        ),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: const Color(0xFFF5F5F5),
-            child: Text(
-              name[0],
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF030213),
-              ),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: const Color(0xFFE0E0E0).withValues(alpha: 0.5),
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: const Color(0xFFF5F5F5),
+                child: Text(
+                  name[0],
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1A1A1A),
+                    color: Color(0xFF030213),
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '$field · Year $year',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF717182),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: isPending
-                  ? const Color(0xFFFFF3E0)
-                  : const Color(0xFFE8F5E9),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              status,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: isPending
-                    ? const Color(0xFFE65100)
-                    : const Color(0xFF2E7D32),
               ),
-            ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1A1A1A),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      showCompany
+                          ? '$field · Year $year · Accepted at $company'
+                          : '$field · Year $year',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF717182),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isPending
+                      ? const Color(0xFFFFF3E0)
+                      : const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  status,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isPending
+                        ? const Color(0xFFE65100)
+                        : const Color(0xFF2E7D32),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

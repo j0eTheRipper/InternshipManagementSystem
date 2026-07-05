@@ -135,14 +135,14 @@ class _SidebarState extends State<Sidebar> {
                 ],
                 if (!isStudent && !isHeadhunter) ...[
                   NavItem(
-                    icon: Icons.description_outlined,
-                    label: 'Resume',
-                    route: '/resume',
+                    icon: Icons.people_outline,
+                    label: 'All Students',
+                    route: '/mentor/all-students',
                   ),
                   NavItem(
-                    icon: Icons.mail_outline_rounded,
-                    label: 'Offer Letters',
-                    route: '/mentor/offer-letters',
+                    icon: Icons.folder_outlined,
+                    label: 'Student Documents',
+                    route: '/mentor/student-documents',
                   ),
                 ],
                 _NotificationNavItem(unreadCount: _unreadCount),

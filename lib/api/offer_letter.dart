@@ -56,6 +56,40 @@ Future<Map<String, dynamic>> getOfferLetterByApplication(int applicationId) asyn
   throw Exception(json['detail'] ?? 'Failed to fetch offer letter');
 }
 
+Future<List<dynamic>> getStudentOfferLetters(String studentId) async {
+  final response = await http.get(
+    Uri.parse('$_baseUrl/offer-letter/student/$studentId'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ${AuthState.token}',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body) as List<dynamic>;
+  }
+
+  final json = jsonDecode(response.body);
+  throw Exception(json['detail'] ?? 'Failed to fetch student offer letters');
+}
+
+Future<List<dynamic>> getMentorOfferLetters() async {
+  final response = await http.get(
+    Uri.parse('$_baseUrl/offer-letter/all'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ${AuthState.token}',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body) as List<dynamic>;
+  }
+
+  final json = jsonDecode(response.body);
+  throw Exception(json['detail'] ?? 'Failed to fetch offer letters');
+}
+
 Future<List<dynamic>> getPendingOfferLetters() async {
   final token = AuthState.token;
   final response = await http.get(

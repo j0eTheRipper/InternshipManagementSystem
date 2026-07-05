@@ -14,6 +14,9 @@ import 'package:internship_management_system/pages/opportunities/opportunities_p
 import 'package:internship_management_system/pages/opportunities/opportunity_detail_page.dart';
 import 'package:internship_management_system/pages/offer_letter/mentor_offer_letters_page.dart';
 import 'package:internship_management_system/pages/profile/profile_page.dart';
+import 'package:internship_management_system/pages/student_documents/all_students_page.dart';
+import 'package:internship_management_system/pages/student_documents/student_documents_page.dart';
+import 'package:internship_management_system/pages/student_documents/student_detail_page.dart';
 import 'package:internship_management_system/pages/resume/resume_page.dart';
 import 'package:internship_management_system/pages/login_screen/login_screen.dart';
 
@@ -83,6 +86,20 @@ final _router = GoRouter(
         GoRoute(
           path: '/mentor/offer-letters',
           builder: (context, state) => const MentorOfferLettersPage(),
+        ),
+        GoRoute(
+          path: '/mentor/all-students',
+          builder: (context, state) => const AllStudentsPage(),
+        ),
+        GoRoute(
+          path: '/mentor/student-documents',
+          builder: (context, state) => const StudentDocumentsPage(),
+        ),
+        GoRoute(
+          path: '/mentor/student-detail/:studentId',
+          builder: (context, state) => StudentDetailPage(
+            studentId: state.pathParameters['studentId']!,
+          ),
         ),
         GoRoute(
           path: '/notifications',
