@@ -52,6 +52,8 @@ Future<Headhunter> getHeadhunterProfile() async {
     },
   );
 
+  AuthState.requireAuth(response);
+
   if (response.statusCode == 200) {
     final json = jsonDecode(response.body);
     return Headhunter.fromJson(json);

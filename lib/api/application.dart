@@ -20,6 +20,8 @@ Future<Application> apply({required int opportunityId, required int resumeId}) a
     }),
   );
 
+  AuthState.requireAuth(response);
+
   if (response.statusCode == 200) {
     return Application.fromJson(jsonDecode(response.body));
   }
@@ -63,6 +65,8 @@ Future<Application> createExternalApplication({
     return Application.fromJson(jsonDecode(response.body));
   }
 
+  AuthState.requireAuth(response);
+
   final json = jsonDecode(response.body);
   throw Exception(json['detail'] ?? 'Failed to create external application');
 }
@@ -75,6 +79,8 @@ Future<List<Application>> getMyApplications() async {
       'Authorization': 'Bearer ${AuthState.token}',
     },
   );
+
+  AuthState.requireAuth(response);
 
   if (response.statusCode == 200) {
     final List json = jsonDecode(response.body);
@@ -94,6 +100,8 @@ Future<Application> getApplication(int applicationId) async {
     },
   );
 
+  AuthState.requireAuth(response);
+
   if (response.statusCode == 200) {
     return Application.fromJson(jsonDecode(response.body));
   }
@@ -110,6 +118,8 @@ Future<Uint8List> downloadScreenshot(int applicationId) async {
       if (token != null) 'Authorization': 'Bearer $token',
     },
   );
+
+  AuthState.requireAuth(response);
 
   if (response.statusCode == 200) {
     return response.bodyBytes;
@@ -132,6 +142,8 @@ Future<List<Application>> getApplicants(int opportunityId) async {
     },
   );
 
+  AuthState.requireAuth(response);
+
   if (response.statusCode == 200) {
     final List json = jsonDecode(response.body);
     return json.map((e) => Application.fromJson(e)).toList();
@@ -151,6 +163,8 @@ Future<void> updateApplicationStatus(int applicationId, String status) async {
     body: jsonEncode({'status': status}),
   );
 
+  AuthState.requireAuth(response);
+
   if (response.statusCode != 200) {
     final json = jsonDecode(response.body);
     throw Exception(json['detail'] ?? 'Failed to update status');
@@ -165,6 +179,8 @@ Future<void> acceptApplication(int applicationId) async {
       'Authorization': 'Bearer ${AuthState.token}',
     },
   );
+
+  AuthState.requireAuth(response);
 
   if (response.statusCode != 200) {
     final json = jsonDecode(response.body);

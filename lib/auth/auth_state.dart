@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
 import 'package:internship_management_system/models/headhunter.dart';
 import 'package:internship_management_system/models/student.dart';
 import 'package:internship_management_system/models/user.dart';
@@ -26,6 +28,30 @@ class AuthState {
   static bool get isStudent => currentRole == 'student';
   static bool get isMentor => currentRole == 'universityMentor';
   static bool get isHeadhunter => currentRole == 'headhunter';
+
+  static GoRouter? _router;
+  static set router(GoRouter r) => _router = r;
+
+  static void handleUnauthorized() {
+    if (!_isLoggedIn) return;
+    _currentUser = null;
+    _currentStudent = null;
+    _currentHeadhunter = null;
+    _token = null;
+    _isLoggedIn = false;
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.remove('user_json');
+      prefs.remove('auth_token');
+    });
+    _router?.go('/login');
+  }
+
+  static void requireAuth(http.Response response) {
+    if (response.statusCode == 401) {
+      handleUnauthorized();
+      throw Exception('Session expired');
+    }
+  }
 
   static Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();

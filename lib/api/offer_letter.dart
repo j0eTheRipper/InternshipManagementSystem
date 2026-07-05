@@ -26,7 +26,9 @@ Future<Map<String, dynamic>> uploadOfferLetter({
   ));
 
   final streamedResponse = await request.send();
-  final response = await http.Response.fromStream(streamedResponse);
+  final response = await http.Response.fromStream(streamedResponse  );
+
+  AuthState.requireAuth(response);
 
   if (response.statusCode == 200) {
     return jsonDecode(response.body) as Map<String, dynamic>;
@@ -45,6 +47,8 @@ Future<Map<String, dynamic>> getOfferLetterByApplication(int applicationId) asyn
       if (token != null) 'Authorization': 'Bearer $token',
     },
   );
+
+  AuthState.requireAuth(response);
 
   if (response.statusCode == 200) {
     return jsonDecode(response.body) as Map<String, dynamic>;
@@ -65,6 +69,8 @@ Future<List<dynamic>> getStudentOfferLetters(String studentId) async {
     },
   );
 
+  AuthState.requireAuth(response);
+
   if (response.statusCode == 200) {
     return jsonDecode(response.body) as List<dynamic>;
   }
@@ -81,6 +87,8 @@ Future<List<dynamic>> getMentorOfferLetters() async {
       'Authorization': 'Bearer ${AuthState.token}',
     },
   );
+
+  AuthState.requireAuth(response);
 
   if (response.statusCode == 200) {
     return jsonDecode(response.body) as List<dynamic>;
@@ -100,6 +108,8 @@ Future<List<dynamic>> getPendingOfferLetters() async {
     },
   );
 
+  AuthState.requireAuth(response);
+
   if (response.statusCode == 200) {
     return jsonDecode(response.body) as List<dynamic>;
   }
@@ -116,6 +126,8 @@ Future<Uint8List> downloadOfferLetter(int offerLetterId) async {
       if (token != null) 'Authorization': 'Bearer $token',
     },
   );
+
+  AuthState.requireAuth(response);
 
   if (response.statusCode == 200) {
     return response.bodyBytes;
@@ -139,6 +151,8 @@ Future<void> approveOfferLetter(int offerLetterId) async {
     },
   );
 
+  AuthState.requireAuth(response);
+
   if (response.statusCode == 200) return;
 
   final json = jsonDecode(response.body);
@@ -154,6 +168,8 @@ Future<void> rejectOfferLetter(int offerLetterId) async {
       if (token != null) 'Authorization': 'Bearer $token',
     },
   );
+
+  AuthState.requireAuth(response);
 
   if (response.statusCode == 200) return;
 

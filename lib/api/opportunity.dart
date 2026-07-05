@@ -14,6 +14,8 @@ Future<List<Opportunity>> getOpportunities() async {
     },
   );
 
+  AuthState.requireAuth(response);
+
   if (response.statusCode == 200) {
     final List json = jsonDecode(response.body);
     return json.map((e) => Opportunity.fromJson(e)).toList();
@@ -32,6 +34,8 @@ Future<Opportunity> getOpportunity(int id) async {
     },
   );
 
+  AuthState.requireAuth(response);
+
   if (response.statusCode == 200) {
     return Opportunity.fromJson(jsonDecode(response.body));
   }
@@ -48,6 +52,8 @@ Future<List<Opportunity>> getMyOpportunities() async {
       'Authorization': 'Bearer ${AuthState.token}',
     },
   );
+
+  AuthState.requireAuth(response);
 
   if (response.statusCode == 200) {
     final List json = jsonDecode(response.body);
@@ -80,6 +86,8 @@ Future<Opportunity> createOpportunity({
     }),
   );
 
+  AuthState.requireAuth(response);
+
   if (response.statusCode == 200) {
     return Opportunity.fromJson(jsonDecode(response.body));
   }
@@ -110,6 +118,8 @@ Future<void> updateOpportunity(int id, {
     }),
   );
 
+  AuthState.requireAuth(response);
+
   if (response.statusCode != 200) {
     final json = jsonDecode(response.body);
     throw Exception(json['detail'] ?? 'Failed to update opportunity');
@@ -124,6 +134,8 @@ Future<void> deleteOpportunity(int id) async {
       'Authorization': 'Bearer ${AuthState.token}',
     },
   );
+
+  AuthState.requireAuth(response);
 
   if (response.statusCode != 200) {
     final json = jsonDecode(response.body);

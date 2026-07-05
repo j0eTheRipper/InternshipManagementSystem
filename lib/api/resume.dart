@@ -36,6 +36,8 @@ Future<Map<String, dynamic>> uploadResume(
 
   if (client == null) c.close();
 
+  AuthState.requireAuth(response);
+
   if (response.statusCode == 200) {
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
@@ -59,6 +61,8 @@ Future<List<ResumeData>> getResume({String? studentId, http.Client? client}) asy
   );
 
   if (client == null) c.close();
+
+  AuthState.requireAuth(response);
 
   if (response.statusCode == 200) {
     final list = jsonDecode(response.body) as List;
@@ -85,6 +89,8 @@ Future<Uint8List> downloadResume(int resumeId, {http.Client? client}) async {
 
   if (client == null) c.close();
 
+  AuthState.requireAuth(response);
+
   if (response.statusCode == 200) {
     return response.bodyBytes;
   }
@@ -109,6 +115,8 @@ Future<void> approveResume(int resumeId, {http.Client? client}) async {
   );
 
   if (client == null) c.close();
+
+  AuthState.requireAuth(response);
 
   if (response.statusCode == 200) return;
 

@@ -13,6 +13,8 @@ Future<Student> getStudent(String userId) async {
     headers: {if (token != null) 'Authorization': 'Bearer $token'},
   );
 
+  AuthState.requireAuth(response);
+
   if (response.statusCode == 200) {
     final json = jsonDecode(response.body);
     if (json case {'Error': _}) {
@@ -32,6 +34,8 @@ Future<String?> getAcceptedCompany(String studentId) async {
     headers: {if (token != null) 'Authorization': 'Bearer $token'},
   );
 
+  AuthState.requireAuth(response);
+
   if (response.statusCode == 200) {
     final json = jsonDecode(response.body);
     return json['company'] as String?;
@@ -49,6 +53,8 @@ Future<List<Student>> getMentorStudents({http.Client? client}) async {
   );
 
   if (client == null) c.close();
+
+  AuthState.requireAuth(response);
 
   if (response.statusCode == 200) {
     final list = jsonDecode(response.body) as List;

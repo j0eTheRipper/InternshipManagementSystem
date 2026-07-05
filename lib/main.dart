@@ -117,6 +117,7 @@ final _router = GoRouter(
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AuthState.init();
+  AuthState.router = _router;
   runApp(const MyApp());
 }
 

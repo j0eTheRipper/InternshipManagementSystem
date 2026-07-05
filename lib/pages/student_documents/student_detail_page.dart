@@ -369,6 +369,9 @@ class _StudentDetailPageState extends State<StudentDetailPage> {
     final pendingOfferLetters = _offerLetters.where((ol) => ol['verified'] != true).toList();
     final reviewedOfferLetters = _offerLetters.where((ol) => ol['verified'] == true).toList();
 
+    final hasResumes = _resumes.isNotEmpty;
+    final hasOfferLetters = _offerLetters.isNotEmpty;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -381,7 +384,7 @@ class _StudentDetailPageState extends State<StudentDetailPage> {
           ),
         ),
         const SizedBox(height: 16),
-        if (_resumes.isEmpty && _offerLetters.isEmpty)
+        if (!hasResumes && !hasOfferLetters)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(32),
@@ -400,154 +403,116 @@ class _StudentDetailPageState extends State<StudentDetailPage> {
             ),
           )
         else ...[
-          if (pendingResumes.isNotEmpty || pendingOfferLetters.isNotEmpty) ...[
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFFE0E0E0).withValues(alpha: 0.5),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Pending Reviews',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFFE65100),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  ...pendingResumes.map(
-                    (r) => _DocumentRow(
-                      icon: Icons.description_outlined,
-                      title: 'Resume #${r.resumeId}',
-                      subtitle: 'Pending',
-                      subtitleColor: const Color(0xFFE65100),
-                      openingPdf: _openingPdf,
-                      pdfKey: 'resume:${r.resumeId}',
-                      onView: () => _viewResume(r.resumeId),
-                      actionLabel: 'Approve',
-                      actionColor: const Color(0xFF2E7D32),
-                      onAction: () => _approveResume(r.resumeId),
-                    ),
-                  ),
-                  ...pendingOfferLetters.map(
-                    (ol) => _DocumentRow(
-                      icon: Icons.mail_outline_rounded,
-                      title: ol['opportunity_title'] ?? 'Offer Letter',
-                      subtitle: 'Pending',
-                      subtitleColor: const Color(0xFFE65100),
-                      openingPdf: _openingPdf,
-                      pdfKey: 'ol:${ol['offer_letter_id']}',
-                      onView: () => _viewOfferLetter(ol['offer_letter_id'] as int),
-                      actionLabel: 'Approve',
-                      actionColor: const Color(0xFF2E7D32),
-                      onAction: () => _approveOfferLetter(ol['offer_letter_id'] as int),
-                      secondaryActionLabel: 'Reject',
-                      secondaryActionColor: const Color(0xFFC62828),
-                      onSecondaryAction: () => _rejectOfferLetter(ol['offer_letter_id'] as int),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (reviewedResumes.isNotEmpty || reviewedOfferLetters.isNotEmpty)
-              const SizedBox(height: 16),
-          ],
-          if (reviewedResumes.isNotEmpty || reviewedOfferLetters.isNotEmpty)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFFE0E0E0).withValues(alpha: 0.5),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Reviewed Documents',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF2E7D32),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  ...reviewedResumes.map(
-                    (r) => _DocumentRow(
-                      icon: Icons.description_outlined,
-                      title: 'Resume #${r.resumeId}',
-                      subtitle: 'Approved',
-                      subtitleColor: const Color(0xFF2E7D32),
-                      openingPdf: _openingPdf,
-                      pdfKey: 'resume:${r.resumeId}',
-                      onView: () => _viewResume(r.resumeId),
-                    ),
-                  ),
-                  ...reviewedOfferLetters.map(
-                    (ol) => _DocumentRow(
-                      icon: Icons.mail_outline_rounded,
-                      title: ol['opportunity_title'] ?? 'Offer Letter',
-                      subtitle: 'Approved',
-                      subtitleColor: const Color(0xFF2E7D32),
-                      openingPdf: _openingPdf,
-                      pdfKey: 'ol:${ol['offer_letter_id']}',
-                      onView: () => _viewOfferLetter(ol['offer_letter_id'] as int),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          if (hasResumes) _buildTypeSection(
+            title: 'Resumes',
+            icon: Icons.description_outlined,
+            pendingList: pendingResumes.map((r) => _DocumentItem(
+              key: 'resume:${r.resumeId}',
+              title: 'Resume #${r.resumeId}',
+              onView: () => _viewResume(r.resumeId),
+              onApprove: () => _approveResume(r.resumeId),
+            )).toList(),
+            reviewedList: reviewedResumes.map((r) => _DocumentItem(
+              key: 'resume:${r.resumeId}',
+              title: 'Resume #${r.resumeId}',
+              onView: () => _viewResume(r.resumeId),
+            )).toList(),
+          ),
+          if (hasResumes && hasOfferLetters) const SizedBox(height: 20),
+          if (hasOfferLetters) _buildTypeSection(
+            title: 'Offer Letters',
+            icon: Icons.mail_outline_rounded,
+            pendingList: pendingOfferLetters.map((ol) => _DocumentItem(
+              key: 'ol:${ol['offer_letter_id']}',
+              title: ol['opportunity_title'] ?? 'Offer Letter',
+              onView: () => _viewOfferLetter(ol['offer_letter_id'] as int),
+              onApprove: () => _approveOfferLetter(ol['offer_letter_id'] as int),
+              onReject: () => _rejectOfferLetter(ol['offer_letter_id'] as int),
+            )).toList(),
+            reviewedList: reviewedOfferLetters.map((ol) => _DocumentItem(
+              key: 'ol:${ol['offer_letter_id']}',
+              title: ol['opportunity_title'] ?? 'Offer Letter',
+              onView: () => _viewOfferLetter(ol['offer_letter_id'] as int),
+            )).toList(),
+          ),
         ],
       ],
     );
   }
-}
 
-class _DocumentRow extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final Color subtitleColor;
-  final Map<String, bool> openingPdf;
-  final String pdfKey;
-  final VoidCallback onView;
-  final String? actionLabel;
-  final Color? actionColor;
-  final VoidCallback? onAction;
-  final String? secondaryActionLabel;
-  final Color? secondaryActionColor;
-  final VoidCallback? onSecondaryAction;
+  Widget _buildTypeSection({
+    required String title,
+    required IconData icon,
+    required List<_DocumentItem> pendingList,
+    required List<_DocumentItem> reviewedList,
+  }) {
+    final hasPending = pendingList.isNotEmpty;
+    final hasReviewed = reviewedList.isNotEmpty;
 
-  const _DocumentRow({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.subtitleColor,
-    required this.openingPdf,
-    required this.pdfKey,
-    required this.onView,
-    this.actionLabel,
-    this.actionColor,
-    this.onAction,
-    this.secondaryActionLabel,
-    this.secondaryActionColor,
-    this.onSecondaryAction,
-  });
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFFE0E0E0).withValues(alpha: 0.5),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1A1A1A),
+            ),
+          ),
+          if (hasPending) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Unreviewed',
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFFE65100),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...pendingList.map((item) => _buildDocumentRow(item, icon)),
+          ],
+          if (hasPending && hasReviewed) const SizedBox(height: 16),
+          if (hasReviewed) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Reviewed',
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF2E7D32),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...reviewedList.map((item) => _buildDocumentRow(item, icon)),
+          ],
+          if (!hasPending && !hasReviewed)
+            const Padding(
+              padding: EdgeInsets.only(top: 12),
+              child: Text(
+                'No documents uploaded.',
+                style: TextStyle(fontSize: 14, color: Color(0xFF9E9E9E)),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 
-  @override
-  Widget build(BuildContext context) {
-    final opening = openingPdf[pdfKey] == true;
+  Widget _buildDocumentRow(_DocumentItem item, IconData icon) {
+    final opening = _openingPdf[item.key] == true;
+    final isPending = item.onApprove != null;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -560,7 +525,7 @@ class _DocumentRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  item.title,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -568,10 +533,10 @@ class _DocumentRow extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  subtitle,
+                  isPending ? 'Pending' : 'Approved',
                   style: TextStyle(
                     fontSize: 12,
-                    color: subtitleColor,
+                    color: isPending ? const Color(0xFFE65100) : const Color(0xFF2E7D32),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -579,7 +544,7 @@ class _DocumentRow extends StatelessWidget {
             ),
           ),
           OutlinedButton.icon(
-            onPressed: opening ? null : onView,
+            onPressed: opening ? null : item.onView,
             icon: opening
                 ? const SizedBox(
                     width: 16,
@@ -595,30 +560,46 @@ class _DocumentRow extends StatelessWidget {
               textStyle: const TextStyle(fontSize: 13),
             ),
           ),
-          if (onAction != null) ...[
+          if (item.onApprove != null) ...[
             const SizedBox(width: 8),
             FilledButton(
-              onPressed: onAction,
+              onPressed: item.onApprove,
               style: FilledButton.styleFrom(
-                backgroundColor: actionColor ?? const Color(0xFF2E7D32),
+                backgroundColor: const Color(0xFF2E7D32),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               ),
-              child: Text(actionLabel ?? 'Approve'),
+              child: const Text('Approve'),
             ),
           ],
-          if (onSecondaryAction != null) ...[
+          if (item.onReject != null) ...[
             const SizedBox(width: 8),
             FilledButton(
-              onPressed: onSecondaryAction,
+              onPressed: item.onReject,
               style: FilledButton.styleFrom(
-                backgroundColor: secondaryActionColor ?? const Color(0xFFC62828),
+                backgroundColor: const Color(0xFFC62828),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               ),
-              child: Text(secondaryActionLabel ?? 'Reject'),
+              child: const Text('Reject'),
             ),
           ],
         ],
       ),
     );
   }
+}
+
+class _DocumentItem {
+  final String key;
+  final String title;
+  final VoidCallback onView;
+  final VoidCallback? onApprove;
+  final VoidCallback? onReject;
+
+  const _DocumentItem({
+    required this.key,
+    required this.title,
+    required this.onView,
+    this.onApprove,
+    this.onReject,
+  });
 }

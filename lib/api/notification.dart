@@ -18,6 +18,8 @@ Future<List<NotificationData>> getNotifications({http.Client? client}) async {
 
   if (client == null) c.close();
 
+  AuthState.requireAuth(response);
+
   if (response.statusCode == 200) {
     final list = jsonDecode(response.body) as List;
     return list.map((e) => NotificationData.fromJson(e)).toList();
@@ -39,6 +41,8 @@ Future<int> getUnreadCount({http.Client? client}) async {
 
   if (client == null) c.close();
 
+  AuthState.requireAuth(response);
+
   if (response.statusCode == 200) {
     final json = jsonDecode(response.body);
     return json['unread_count'] as int;
@@ -59,6 +63,8 @@ Future<void> markAsRead(int notificationId, {http.Client? client}) async {
   );
 
   if (client == null) c.close();
+
+  AuthState.requireAuth(response);
 
   if (response.statusCode == 200) return;
 
