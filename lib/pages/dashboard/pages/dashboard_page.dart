@@ -6,6 +6,7 @@ import 'package:internship_management_system/api/student.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/models/opportunity.dart';
 import 'package:internship_management_system/models/student.dart';
+import 'package:internship_management_system/pages/dashboard/pages/interning_dashboard.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -13,6 +14,9 @@ class DashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (AuthState.isStudent) {
+      if (AuthState.currentStudent?.progress == 'accepted') {
+        return const InterningDashboard();
+      }
       return const _StudentDashboard();
     } else if (AuthState.isHeadhunter) {
       return const _HeadhunterDashboard();

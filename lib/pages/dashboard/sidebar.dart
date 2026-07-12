@@ -47,6 +47,7 @@ class _SidebarState extends State<Sidebar> {
     final role = AuthState.currentRole;
     final isStudent = role == 'student';
     final isHeadhunter = role == 'headhunter';
+    final isInterning = AuthState.currentStudent?.progress == 'accepted';
     final userName = AuthState.currentUser?.fullname ?? '';
 
     String roleLabel;
@@ -109,12 +110,21 @@ class _SidebarState extends State<Sidebar> {
                   label: 'Dashboard',
                   route: '/dashboard',
                 ),
-                if (isStudent) ...[
+                if (isStudent && !isInterning) ...[
                   NavItem(
                     icon: Icons.business_rounded,
                     label: 'Opportunities',
                     route: '/opportunities',
                   ),
+                ],
+                if (isStudent && isInterning) ...[
+                  NavItem(
+                    icon: Icons.work_history_rounded,
+                    label: 'Interning',
+                    route: '/dashboard',
+                  ),
+                ],
+                if (isStudent) ...[
                   NavItem(
                     icon: Icons.assignment_rounded,
                     label: 'My Applications',

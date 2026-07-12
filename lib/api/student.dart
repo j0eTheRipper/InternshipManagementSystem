@@ -27,6 +27,23 @@ Future<Student> getStudent(String userId) async {
   throw Exception(json['detail'] ?? 'Failed to fetch student data');
 }
 
+Future<String?> getMyAcceptedCompany() async {
+  final token = AuthState.token;
+  final response = await http.get(
+    Uri.parse('$_baseUrl/student/accepted-company'),
+    headers: {if (token != null) 'Authorization': 'Bearer $token'},
+  );
+
+  AuthState.requireAuth(response);
+
+  if (response.statusCode == 200) {
+    final json = jsonDecode(response.body);
+    return json['company'] as String?;
+  }
+
+  return null;
+}
+
 Future<String?> getAcceptedCompany(String studentId) async {
   final token = AuthState.token;
   final response = await http.get(
@@ -42,6 +59,32 @@ Future<String?> getAcceptedCompany(String studentId) async {
   }
 
   return null;
+}
+
+Future<void> updateInternshipDetails({
+  required String startDate,
+  required int durationWeeks,
+}) async {
+  final token = AuthState.token;
+  final request = http.MultipartRequest(
+    'PATCH',
+    Uri.parse('$_baseUrl/student/internship-details'),
+  );
+  request.headers.addAll({
+    if (token != null) 'Authorization': 'Bearer $token',
+  });
+  request.fields['start_date'] = startDate;
+  request.fields['duration_weeks'] = durationWeeks.toString();
+
+  final streamed = await request.send();
+  final response = await http.Response.fromStream(streamed);
+
+  AuthState.requireAuth(response);
+
+  if (response.statusCode != 200) {
+    final json = jsonDecode(response.body);
+    throw Exception(json['detail'] ?? 'Failed to update internship details');
+  }
 }
 
 Future<List<Student>> getMentorStudents({http.Client? client}) async {

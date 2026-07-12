@@ -33,6 +33,14 @@ final _router = GoRouter(
     if (isLoggedIn && (isLoginRoute || isRegisterRoute)) {
       return '/dashboard';
     }
+
+    final location = state.matchedLocation;
+    final isInterning = AuthState.isStudent &&
+        AuthState.currentStudent?.progress == 'accepted';
+    if (isInterning && (location == '/opportunities' || location.startsWith('/opportunities/'))) {
+      return '/dashboard';
+    }
+
     return null;
   },
   routes: [
