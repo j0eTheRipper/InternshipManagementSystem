@@ -117,13 +117,6 @@ class _SidebarState extends State<Sidebar> {
                     route: '/opportunities',
                   ),
                 ],
-                if (isStudent && isInterning) ...[
-                  NavItem(
-                    icon: Icons.work_history_rounded,
-                    label: 'Interning',
-                    route: '/dashboard',
-                  ),
-                ],
                 if (isStudent) ...[
                   NavItem(
                     icon: Icons.assignment_rounded,

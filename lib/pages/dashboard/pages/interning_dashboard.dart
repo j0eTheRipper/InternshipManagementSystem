@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:internship_management_system/api/attendance.dart';
 import 'package:internship_management_system/api/student.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
 
@@ -285,6 +286,30 @@ class _InterningContent extends StatefulWidget {
 class _InterningContentState extends State<_InterningContent> {
   bool _showDailyCheckIn = false;
   bool _showWeeklyCheckIn = false;
+  bool _checkedInToday = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAttendance();
+  }
+
+  Future<void> _fetchAttendance() async {
+    try {
+      final checkedIn = await getTodaysAttendance();
+      if (mounted) setState(() => _checkedInToday = checkedIn);
+    } catch (_) {}
+  }
+
+  void _showAlreadyCheckedInSnackbar() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('You have already checked in for today.'),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -489,10 +514,13 @@ class _InterningContentState extends State<_InterningContent> {
 
                 // Daily Check-in
                 _ActionCard(
-                  icon: Icons.check_circle_outline_rounded,
-                  title: 'Check In',
-                  subtitle: 'Log your daily attendance',
-                  onTap: () => setState(() => _showDailyCheckIn = true),
+                  icon: _checkedInToday ? Icons.check_circle_rounded : Icons.check_circle_outline_rounded,
+                  title: _checkedInToday ? 'Checked In' : 'Check In',
+                  subtitle: _checkedInToday ? 'You have already checked in for today' : 'Log your daily attendance',
+                  checkedIn: _checkedInToday,
+                  onTap: _checkedInToday
+                      ? () => _showAlreadyCheckedInSnackbar()
+                      : () => setState(() => _showDailyCheckIn = true),
                 ),
                 const SizedBox(height: 8),
 
@@ -509,7 +537,10 @@ class _InterningContentState extends State<_InterningContent> {
 
           // Daily check-in overlay
           if (_showDailyCheckIn)
-            _DailyCheckInModal(onClose: () => setState(() => _showDailyCheckIn = false)),
+            _DailyCheckInModal(
+              onClose: () => setState(() => _showDailyCheckIn = false),
+              onCheckedIn: () { _checkedInToday = true; },
+            ),
 
           // Weekly check-in overlay
           if (_showWeeklyCheckIn)
@@ -528,18 +559,20 @@ class _ActionCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+  final bool checkedIn;
 
   const _ActionCard({
     required this.icon,
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.checkedIn = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: const Color(0xFFF5F5F5),
+      color: checkedIn ? const Color(0xFFE8F5E9) : const Color(0xFFF5F5F5),
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -552,17 +585,19 @@ class _ActionCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: checkedIn ? const Color(0xFF2E7D32) : Colors.white,
                   borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
+                  boxShadow: checkedIn
+                      ? null
+                      : [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
                 ),
-                child: Icon(icon, size: 20, color: const Color(0xFF1A1A1A)),
+                child: Icon(icon, size: 20, color: checkedIn ? Colors.white : const Color(0xFF1A1A1A)),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -596,25 +631,46 @@ class _ActionCard extends StatelessWidget {
 
 class _DailyCheckInModal extends StatefulWidget {
   final VoidCallback onClose;
+  final VoidCallback? onCheckedIn;
 
-  const _DailyCheckInModal({required this.onClose});
+  const _DailyCheckInModal({required this.onClose, this.onCheckedIn});
 
   @override
   State<_DailyCheckInModal> createState() => _DailyCheckInModalState();
 }
 
 class _DailyCheckInModalState extends State<_DailyCheckInModal> {
-  bool _submitted = false;
-  final _controller = TextEditingController();
+  bool _saving = false;
+  bool? _success;
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  Future<void> _doCheckIn() async {
+    setState(() => _saving = true);
+    try {
+      await checkIn();
+      if (mounted) {
+        setState(() {
+          _success = true;
+          _saving = false;
+        });
+        widget.onCheckedIn?.call();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isSubmitted = _success != null;
+
     return GestureDetector(
       onTap: widget.onClose,
       child: Container(
@@ -630,7 +686,7 @@ class _DailyCheckInModalState extends State<_DailyCheckInModal> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: _submitted
+              child: isSubmitted
                   ? Padding(
                       padding: const EdgeInsets.all(28),
                       child: Column(
@@ -676,33 +732,15 @@ class _DailyCheckInModalState extends State<_DailyCheckInModal> {
                           ),
                           const SizedBox(height: 4),
                           const Text(
-                            'Log your attendance and a quick note for today.',
+                            'Log your attendance for today.',
                             style: TextStyle(fontSize: 13, color: Color(0xFF757575)),
                           ),
-                          const SizedBox(height: 20),
-                          TextField(
-                            controller: _controller,
-                            maxLines: 4,
-                            decoration: InputDecoration(
-                              hintText: 'What are you working on today?',
-                              hintStyle: const TextStyle(color: Color(0xFFABABAB)),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFF030213)),
-                              ),
-                              contentPadding: const EdgeInsets.all(16),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 24),
                           Row(
                             children: [
                               Expanded(
                                 child: OutlinedButton(
-                                  onPressed: widget.onClose,
+                                  onPressed: _saving ? null : widget.onClose,
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: const Color(0xFF757575),
                                     side: const BorderSide(color: Color(0xFFE0E0E0)),
@@ -715,15 +753,19 @@ class _DailyCheckInModalState extends State<_DailyCheckInModal> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: FilledButton(
-                                  onPressed: _controller.text.trim().isNotEmpty
-                                      ? () => setState(() => _submitted = true)
-                                      : null,
+                                  onPressed: _saving ? null : _doCheckIn,
                                   style: FilledButton.styleFrom(
                                     backgroundColor: const Color(0xFF030213),
                                     padding: const EdgeInsets.symmetric(vertical: 14),
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                   ),
-                                  child: const Text('Submit', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                                  child: _saving
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                        )
+                                      : const Text('Check In', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
                                 ),
                               ),
                             ],
