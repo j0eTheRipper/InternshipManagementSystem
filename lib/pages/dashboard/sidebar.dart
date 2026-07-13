@@ -117,7 +117,14 @@ class _SidebarState extends State<Sidebar> {
                     route: '/opportunities',
                   ),
                 ],
-                if (isStudent) ...[
+                if (isStudent && isInterning) ...[
+                  NavItem(
+                    icon: Icons.event_available_outlined,
+                    label: 'Attendance',
+                    route: '/attendance',
+                  ),
+                ],
+                if (isStudent && !isInterning) ...[
                   NavItem(
                     icon: Icons.assignment_rounded,
                     label: 'My Applications',

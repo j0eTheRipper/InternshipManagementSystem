@@ -111,9 +111,11 @@ class AuthState {
     await prefs.setString('auth_token', token);
   }
 
-  static void updateStudentData(Student student) {
+  static Future<void> updateStudentData(Student student) async {
     _currentStudent = student;
     _currentUser = student.user;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_json', jsonEncode(student.toJson()));
   }
 
   static Future<void> logout() async {

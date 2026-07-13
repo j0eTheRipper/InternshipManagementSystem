@@ -1,5 +1,10 @@
 import 'user.dart';
 
+String? _emptyToNull(dynamic value) {
+  if (value is String && value.isNotEmpty) return value;
+  return null;
+}
+
 class Student {
   User user;
   User universityMentor;
@@ -28,7 +33,7 @@ class Student {
       fieldOfStudy = json['field_of_study'],
       studentId = json['student_id'],
       progress = json['progress'],
-      internshipStartDate = json['internship_start_date'],
+      internshipStartDate = _emptyToNull(json['internship_start_date']),
       internshipDurationWeeks = json['internship_duration_weeks'];
 
   Map<String, dynamic> toJson() => {

@@ -462,14 +462,15 @@ class _ResumePickerDialog extends StatelessWidget {
           itemCount: resumes.length,
           itemBuilder: (context, index) {
             final resume = resumes[index];
-            return RadioListTile<int>(
-              title: Text('Resume #${resume.resumeId}'),
-              subtitle: Text(resume.verified ? 'Verified' : 'Not verified'),
-              value: resume.resumeId,
-              groupValue: null,
+            return RadioGroup<int>(
               onChanged: (value) {
                 Navigator.pop(context, resume);
               },
+              child: RadioListTile<int>(
+                title: Text('Resume #${resume.resumeId}'),
+                subtitle: Text(resume.verified ? 'Verified' : 'Not verified'),
+                value: resume.resumeId,
+              ),
             );
           },
         ),

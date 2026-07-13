@@ -24,6 +24,29 @@ Future<bool> getTodaysAttendance() async {
   return false;
 }
 
+Future<List<Map<String, dynamic>>> getAttendanceHistory({http.Client? client}) async {
+  final c = client ?? http.Client();
+  final token = AuthState.token;
+  final response = await c.get(
+    Uri.parse('$_baseUrl/attendance/history'),
+    headers: {
+      if (token != null) 'Authorization': 'Bearer $token',
+    },
+  );
+
+  if (client == null) c.close();
+
+  AuthState.requireAuth(response);
+
+  if (response.statusCode == 200) {
+    final list = jsonDecode(response.body) as List;
+    return list.cast<Map<String, dynamic>>();
+  }
+
+  final json = jsonDecode(response.body);
+  throw Exception(json['detail'] ?? 'Failed to fetch attendance history');
+}
+
 Future<Map<String, dynamic>> checkIn() async {
   final token = AuthState.token;
   final response = await http.post(

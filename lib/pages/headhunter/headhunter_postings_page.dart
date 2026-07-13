@@ -68,7 +68,7 @@ class _HeadhunterPostingsPageState extends State<HeadhunterPostingsPage> {
               TextField(controller: locCtrl, decoration: const InputDecoration(labelText: 'Location')),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: selectedStatus,
+                initialValue: selectedStatus,
                 items: const [
                   DropdownMenuItem(value: 'remote', child: Text('Remote')),
                   DropdownMenuItem(value: 'hybrid', child: Text('Hybrid')),

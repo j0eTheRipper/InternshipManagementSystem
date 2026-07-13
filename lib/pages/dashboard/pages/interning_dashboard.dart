@@ -272,7 +272,6 @@ class _InterningContent extends StatefulWidget {
   final String? company;
   final dynamic student;
   final int Function(DateTime) getCurrentWeek;
-
   const _InterningContent({
     required this.company,
     required this.student,
@@ -314,9 +313,8 @@ class _InterningContentState extends State<_InterningContent> {
   @override
   Widget build(BuildContext context) {
     final student = widget.student;
-    final startDateStr = student.internshipStartDate as String;
-    final startDate = DateTime.tryParse(startDateStr) ?? DateTime.now();
-    final totalWeeks = student.internshipDurationWeeks as int? ?? 12;
+    final startDate = DateTime.parse(student.internshipStartDate as String);
+    final totalWeeks = student.internshipDurationWeeks as int;
     final week = widget.getCurrentWeek(startDate);
     final progress = week / totalWeeks;
     final weeksRemaining = totalWeeks - week;
