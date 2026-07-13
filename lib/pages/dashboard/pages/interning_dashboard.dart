@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:internship_management_system/api/attendance.dart';
 import 'package:internship_management_system/api/student.dart';
+import 'package:internship_management_system/api/daily_task.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
 
 class InterningDashboard extends StatefulWidget {
@@ -522,11 +523,11 @@ class _InterningContentState extends State<_InterningContent> {
                 ),
                 const SizedBox(height: 8),
 
-                // Weekly Check-in
+                // Daily Task
                 _ActionCard(
-                  icon: Icons.assignment_outlined,
-                  title: 'Weekly Check-in',
-                  subtitle: 'Week $week reflection & rating',
+                  icon: Icons.edit_note_rounded,
+                  title: 'Daily Task',
+                  subtitle: 'Log what you worked on today',
                   onTap: () => setState(() => _showWeeklyCheckIn = true),
                 ),
               ],
@@ -540,10 +541,9 @@ class _InterningContentState extends State<_InterningContent> {
               onCheckedIn: () { _checkedInToday = true; },
             ),
 
-          // Weekly check-in overlay
+          // Daily task overlay
           if (_showWeeklyCheckIn)
-            _WeeklyCheckInModal(
-              week: week,
+            _DailyTaskModal(
               onClose: () => setState(() => _showWeeklyCheckIn = false),
             ),
         ],
@@ -779,26 +779,42 @@ class _DailyCheckInModalState extends State<_DailyCheckInModal> {
   }
 }
 
-class _WeeklyCheckInModal extends StatefulWidget {
-  final int week;
+class _DailyTaskModal extends StatefulWidget {
   final VoidCallback onClose;
 
-  const _WeeklyCheckInModal({required this.week, required this.onClose});
+  const _DailyTaskModal({required this.onClose});
 
   @override
-  State<_WeeklyCheckInModal> createState() => _WeeklyCheckInModalState();
+  State<_DailyTaskModal> createState() => _DailyTaskModalState();
 }
 
-class _WeeklyCheckInModalState extends State<_WeeklyCheckInModal> {
+class _DailyTaskModalState extends State<_DailyTaskModal> {
   bool _submitted = false;
-  final _tasksController = TextEditingController();
-  final _learningsController = TextEditingController();
+  bool _saving = false;
+  final _updateController = TextEditingController();
 
   @override
   void dispose() {
-    _tasksController.dispose();
-    _learningsController.dispose();
+    _updateController.dispose();
     super.dispose();
+  }
+
+  Future<void> _submit() async {
+    setState(() => _saving = true);
+    try {
+      await submitDailyTask(updateText: _updateController.text.trim());
+      if (mounted) setState(() { _submitted = true; _saving = false; });
+    } catch (e) {
+      if (mounted) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -826,13 +842,13 @@ class _WeeklyCheckInModalState extends State<_WeeklyCheckInModal> {
                         children: [
                           Icon(Icons.check_circle_outline_rounded, size: 48, color: const Color(0xFF1A1A1A)),
                           const SizedBox(height: 20),
-                          Text(
-                            'Week ${widget.week} report submitted',
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
+                          const Text(
+                            'Daily task submitted',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
                           ),
                           const SizedBox(height: 8),
                           const Text(
-                            'Your mentor will review your weekly report.',
+                            'Your daily update has been recorded.',
                             textAlign: TextAlign.center,
                             style: TextStyle(fontSize: 14, color: Color(0xFF757575)),
                           ),
@@ -858,49 +874,22 @@ class _WeeklyCheckInModalState extends State<_WeeklyCheckInModal> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Week ${widget.week} Check-in',
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
+                          const Text(
+                            'Daily Task',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
                           ),
                           const SizedBox(height: 4),
                           const Text(
-                            'List what you worked on and what you learned this week.',
+                            'What did you work on today?',
                             style: TextStyle(fontSize: 13, color: Color(0xFF757575)),
                           ),
                           const SizedBox(height: 20),
-                          const Text(
-                            'Tasks completed',
-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
-                          ),
-                          const SizedBox(height: 8),
                           TextField(
-                            controller: _tasksController,
-                            maxLines: 3,
+                            controller: _updateController,
+                            maxLines: 5,
+                            onChanged: (_) => setState(() {}),
                             decoration: InputDecoration(
-                              hintText: 'e.g. Built the auth flow, attended sprint planning...',
-                              hintStyle: const TextStyle(color: Color(0xFFABABAB)),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFF030213)),
-                              ),
-                              contentPadding: const EdgeInsets.all(16),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'Learning points',
-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _learningsController,
-                            maxLines: 3,
-                            decoration: InputDecoration(
-                              hintText: 'e.g. Learned how JWT refresh tokens work...',
+                              hintText: 'e.g. Built the login page, fixed a bug in the API...',
                               hintStyle: const TextStyle(color: Color(0xFFABABAB)),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
@@ -931,16 +920,21 @@ class _WeeklyCheckInModalState extends State<_WeeklyCheckInModal> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: FilledButton(
-                                  onPressed: _tasksController.text.trim().isNotEmpty &&
-                                          _learningsController.text.trim().isNotEmpty
-                                      ? () => setState(() => _submitted = true)
+                                  onPressed: _updateController.text.trim().isNotEmpty && !_saving
+                                      ? _submit
                                       : null,
                                   style: FilledButton.styleFrom(
                                     backgroundColor: const Color(0xFF030213),
                                     padding: const EdgeInsets.symmetric(vertical: 14),
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                   ),
-                                  child: const Text('Submit', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                                  child: _saving
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                        )
+                                      : const Text('Submit', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
                                 ),
                               ),
                             ],
