@@ -9,9 +9,7 @@ Future<bool> getTodaysAttendance() async {
   final token = AuthState.token;
   final response = await http.get(
     Uri.parse('$_baseUrl/attendance/today'),
-    headers: {
-      if (token != null) 'Authorization': 'Bearer $token',
-    },
+    headers: {if (token != null) 'Authorization': 'Bearer $token'},
   );
 
   AuthState.requireAuth(response);
@@ -24,14 +22,14 @@ Future<bool> getTodaysAttendance() async {
   return false;
 }
 
-Future<List<Map<String, dynamic>>> getAttendanceHistory({http.Client? client}) async {
+Future<List<Map<String, dynamic>>> getAttendanceHistory({
+  http.Client? client,
+}) async {
   final c = client ?? http.Client();
   final token = AuthState.token;
   final response = await c.get(
     Uri.parse('$_baseUrl/attendance/history'),
-    headers: {
-      if (token != null) 'Authorization': 'Bearer $token',
-    },
+    headers: {if (token != null) 'Authorization': 'Bearer $token'},
   );
 
   if (client == null) c.close();
@@ -51,9 +49,7 @@ Future<Map<String, dynamic>> checkIn() async {
   final token = AuthState.token;
   final response = await http.post(
     Uri.parse('$_baseUrl/attendance/check-in'),
-    headers: {
-      if (token != null) 'Authorization': 'Bearer $token',
-    },
+    headers: {if (token != null) 'Authorization': 'Bearer $token'},
   );
 
   AuthState.requireAuth(response);

@@ -20,6 +20,7 @@ import 'package:internship_management_system/pages/student_documents/student_det
 import 'package:internship_management_system/pages/resume/resume_page.dart';
 import 'package:internship_management_system/pages/login_screen/login_screen.dart';
 import 'package:internship_management_system/pages/attendance/attendance_page.dart';
+import 'package:internship_management_system/pages/work_logs/work_logs_page.dart';
 
 final _router = GoRouter(
   initialLocation: '/login',
@@ -121,6 +122,10 @@ final _router = GoRouter(
         GoRoute(
           path: '/attendance',
           builder: (context, state) => const AttendancePage(),
+        ),
+        GoRoute(
+          path: '/work-logs',
+          builder: (context, state) => const WorkLogsPage(),
         ),
       ],
     ),

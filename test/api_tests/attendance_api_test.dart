@@ -34,24 +34,36 @@ void main() {
       final client = MockHttpClient([
         http.Response(jsonEncode([
           {
+            'date': '2025-07-10',
+            'attended': true,
+            'pending': false,
             'attendance_id': 1,
-            'student_id': 'TP0112233',
             'checked_at': '2025-07-10 09:00:00',
           },
           {
+            'date': '2025-07-09',
+            'attended': true,
+            'pending': false,
             'attendance_id': 2,
-            'student_id': 'TP0112233',
             'checked_at': '2025-07-09 09:15:00',
+          },
+          {
+            'date': '2025-07-08',
+            'attended': false,
+            'pending': false,
+            'attendance_id': null,
+            'checked_at': null,
           },
         ]), 200),
       ]);
 
       final result = await getAttendanceHistory(client: client);
 
-      expect(result.length, 2);
-      expect(result[0]['attendance_id'], 1);
+      expect(result.length, 3);
+      expect(result[0]['attended'], true);
       expect(result[0]['checked_at'], '2025-07-10 09:00:00');
-      expect(result[1]['attendance_id'], 2);
+      expect(result[2]['attended'], false);
+      expect(result[2]['pending'], false);
       expect(client.requests[0].headers['Authorization'], 'Bearer test-token');
     });
 

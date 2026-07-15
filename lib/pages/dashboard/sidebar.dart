@@ -123,6 +123,11 @@ class _SidebarState extends State<Sidebar> {
                     label: 'Attendance',
                     route: '/attendance',
                   ),
+                  NavItem(
+                    icon: Icons.edit_note_rounded,
+                    label: 'Work Logs',
+                    route: '/work-logs',
+                  ),
                 ],
                 if (isStudent && !isInterning) ...[
                   NavItem(
