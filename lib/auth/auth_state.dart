@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
+import 'package:internship_management_system/models/company_supervisor.dart';
 import 'package:internship_management_system/models/headhunter.dart';
 import 'package:internship_management_system/models/student.dart';
 import 'package:internship_management_system/models/user.dart';
@@ -11,12 +12,14 @@ class AuthState {
   static User? _currentUser;
   static Student? _currentStudent;
   static Headhunter? _currentHeadhunter;
+  static CompanySupervisor? _currentCompanySupervisor;
   static String? _token;
   static bool _isLoggedIn = false;
 
   static User? get currentUser => _currentUser;
   static Student? get currentStudent => _currentStudent;
   static Headhunter? get currentHeadhunter => _currentHeadhunter;
+  static CompanySupervisor? get currentCompanySupervisor => _currentCompanySupervisor;
   static String? get token => _token;
   static bool get isLoggedIn => _isLoggedIn;
 
@@ -29,6 +32,7 @@ class AuthState {
   static bool get isMentor => currentRole == 'universityMentor';
   static bool get isHeadhunter => currentRole == 'headhunter';
   static bool get isAdmin => currentRole == 'admin';
+  static bool get isCompanySupervisor => currentRole == 'companySupervisor';
 
   static GoRouter? _router;
   static set router(GoRouter r) => _router = r;
@@ -38,6 +42,7 @@ class AuthState {
     _currentUser = null;
     _currentStudent = null;
     _currentHeadhunter = null;
+    _currentCompanySupervisor = null;
     _token = null;
     _isLoggedIn = false;
     SharedPreferences.getInstance().then((prefs) {
@@ -67,14 +72,22 @@ class AuthState {
         _currentHeadhunter = Headhunter.fromJson(json);
         _currentUser = _currentHeadhunter!.user;
         _currentStudent = null;
+        _currentCompanySupervisor = null;
+      } else if (role == 'companySupervisor') {
+        _currentCompanySupervisor = CompanySupervisor.fromJson(json);
+        _currentUser = _currentCompanySupervisor!.user;
+        _currentStudent = null;
+        _currentHeadhunter = null;
       } else if (json['user'] != null) {
         _currentStudent = Student.fromJson(json);
         _currentUser = _currentStudent!.user;
         _currentHeadhunter = null;
+        _currentCompanySupervisor = null;
       } else {
         _currentUser = User.fromJson(json);
         _currentStudent = null;
         _currentHeadhunter = null;
+        _currentCompanySupervisor = null;
       }
       _isLoggedIn = true;
     } catch (_) {
@@ -90,14 +103,22 @@ class AuthState {
       _currentStudent = user;
       _currentUser = user.user;
       _currentHeadhunter = null;
+      _currentCompanySupervisor = null;
     } else if (user is Headhunter) {
       _currentHeadhunter = user;
       _currentUser = user.user;
       _currentStudent = null;
+      _currentCompanySupervisor = null;
+    } else if (user is CompanySupervisor) {
+      _currentCompanySupervisor = user;
+      _currentUser = user.user;
+      _currentStudent = null;
+      _currentHeadhunter = null;
     } else if (user is User) {
       _currentUser = user;
       _currentStudent = null;
       _currentHeadhunter = null;
+      _currentCompanySupervisor = null;
     }
     _isLoggedIn = true;
 
@@ -105,6 +126,8 @@ class AuthState {
     if (user is Student) {
       await prefs.setString('user_json', jsonEncode(user.toJson()));
     } else if (user is Headhunter) {
+      await prefs.setString('user_json', jsonEncode(user.toJson()));
+    } else if (user is CompanySupervisor) {
       await prefs.setString('user_json', jsonEncode(user.toJson()));
     } else if (user is User) {
       await prefs.setString('user_json', jsonEncode(user.toJson()));
@@ -123,6 +146,7 @@ class AuthState {
     _currentUser = null;
     _currentStudent = null;
     _currentHeadhunter = null;
+    _currentCompanySupervisor = null;
     _token = null;
     _isLoggedIn = false;
 

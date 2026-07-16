@@ -340,6 +340,16 @@ class _StudentDetailPageState extends State<StudentDetailPage> {
                     color: Color(0xFF9E9E9E),
                   ),
                 ),
+                if (student.companySupervisor != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    'Supervisor: ${student.companySupervisor!.fullname}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF9E9E9E),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

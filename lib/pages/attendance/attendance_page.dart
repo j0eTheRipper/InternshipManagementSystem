@@ -157,6 +157,7 @@ class _AttendancePageState extends State<AttendancePage> {
   Widget _buildRow(Map<String, dynamic> record) {
     final attended = record['attended'] == true;
     final pending = record['pending'] == true;
+    final verified = record['verified'] == true;
     final dateStr = record['date'] as String;
 
     DateTime? dt;
@@ -249,6 +250,24 @@ class _AttendancePageState extends State<AttendancePage> {
                 color: Color(0xFF757575),
               ),
             ),
+          if (attended && !pending) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: verified ? const Color(0xFFE8F5E9) : const Color(0xFFFFF3E0),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                verified ? 'Verified' : 'Unverified',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: verified ? const Color(0xFF2E7D32) : const Color(0xFFF57C00),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

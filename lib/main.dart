@@ -26,6 +26,8 @@ import 'package:internship_management_system/pages/admin/admin_students_page.dar
 import 'package:internship_management_system/pages/admin/admin_add_student_form.dart';
 import 'package:internship_management_system/pages/admin/admin_mentors_page.dart';
 import 'package:internship_management_system/pages/admin/admin_attendance_page.dart';
+import 'package:internship_management_system/pages/admin/admin_company_supervisors_page.dart';
+import 'package:internship_management_system/pages/company_supervisor/company_supervisor_pages.dart';
 
 final _router = GoRouter(
   initialLocation: '/login',
@@ -151,6 +153,18 @@ final _router = GoRouter(
         GoRoute(
           path: '/admin/attendance',
           builder: (context, state) => const AdminAttendancePage(),
+        ),
+        GoRoute(
+          path: '/admin/company-supervisors',
+          builder: (context, state) => const AdminCompanySupervisorsPage(),
+        ),
+        GoRoute(
+          path: '/company-supervisor/dashboard',
+          builder: (context, state) => const CompanySupervisorDashboard(),
+        ),
+        GoRoute(
+          path: '/company-supervisor/students',
+          builder: (context, state) => const CompanySupervisorStudentsPage(),
         ),
       ],
     ),

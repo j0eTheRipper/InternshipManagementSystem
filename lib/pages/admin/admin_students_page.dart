@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:internship_management_system/api/admin.dart';
+import 'package:internship_management_system/models/company_supervisor.dart';
 import 'package:internship_management_system/models/student.dart';
 import 'package:internship_management_system/models/user.dart';
 
@@ -14,6 +15,7 @@ class AdminStudentsPage extends StatefulWidget {
 class _AdminStudentsPageState extends State<AdminStudentsPage> {
   List<Student> _students = [];
   List<User> _mentors = [];
+  List<CompanySupervisor> _companySupervisors = [];
   bool _loading = true;
   String? _error;
 
@@ -25,11 +27,12 @@ class _AdminStudentsPageState extends State<AdminStudentsPage> {
 
   Future<void> _fetchData() async {
     try {
-      final results = await Future.wait([getAllStudents(), getAllMentors()]);
+      final results = await Future.wait([getAllStudents(), getAllMentors(), getAllCompanySupervisors()]);
       if (mounted) {
         setState(() {
           _students = results[0] as List<Student>;
           _mentors = results[1] as List<User>;
+          _companySupervisors = results[2] as List<CompanySupervisor>;
           _loading = false;
         });
       }
@@ -97,6 +100,7 @@ class _AdminStudentsPageState extends State<AdminStudentsPage> {
   void _showEditDialog(Student student) {
     String selectedProgress = student.progress;
     int selectedMentorId = student.universityMentor.userId;
+    int? selectedSupervisorId = student.companySupervisor?.userId;
 
     showDialog(
       context: context,
@@ -202,6 +206,46 @@ class _AdminStudentsPageState extends State<AdminStudentsPage> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Company Supervisor',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1A1A1A),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: const Color(0xFFE0E0E0).withValues(alpha: 0.5),
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<int?>(
+                          isExpanded: true,
+                          value: selectedSupervisorId,
+                          items: [
+                            const DropdownMenuItem<int?>(
+                              value: null,
+                              child: Text('None', style: TextStyle(color: Color(0xFF9E9E9E))),
+                            ),
+                            ..._companySupervisors.map(
+                              (s) => DropdownMenuItem<int?>(
+                                value: s.user.userId,
+                                child: Text('${s.user.fullname} (${s.company})'),
+                              ),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            setDialogState(() => selectedSupervisorId = value);
+                          },
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -228,6 +272,13 @@ class _AdminStudentsPageState extends State<AdminStudentsPage> {
                         await updateStudentMentor(
                           student.studentId,
                           selectedMentorId,
+                        );
+                      }
+                      final currentSupervisorId = student.companySupervisor?.userId;
+                      if (selectedSupervisorId != currentSupervisorId) {
+                        await updateStudentCompanySupervisor(
+                          student.studentId,
+                          selectedSupervisorId,
                         );
                       }
                       navigator.pop();
@@ -446,6 +497,16 @@ class _AdminStudentsPageState extends State<AdminStudentsPage> {
                     color: Color(0xFF717182),
                   ),
                 ),
+                if (student.companySupervisor != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    'Supervisor: ${student.companySupervisor!.fullname}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF717182),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

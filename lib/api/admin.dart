@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:internship_management_system/auth/auth_state.dart';
+import 'package:internship_management_system/models/company_supervisor.dart';
 import 'package:internship_management_system/models/student.dart';
 import 'package:internship_management_system/models/user.dart';
 
@@ -231,4 +232,44 @@ Future<List<Map<String, dynamic>>> getStudentAttendance(String studentId, {http.
 
   final json = jsonDecode(response.body);
   throw Exception(json['detail'] ?? 'Failed to fetch attendance');
+}
+
+// ── Company Supervisors ─────────────────────────────────
+
+Future<List<CompanySupervisor>> getAllCompanySupervisors({http.Client? client}) async {
+  final c = client ?? http.Client();
+  final response = await c.get(
+    Uri.parse('$_baseUrl/admin/company-supervisors'),
+    headers: _headers(),
+  );
+
+  if (client == null) c.close();
+
+  AuthState.requireAuth(response);
+
+  if (response.statusCode == 200) {
+    final list = jsonDecode(response.body) as List;
+    return list.map((e) => CompanySupervisor.fromJson(e)).toList();
+  }
+
+  final json = jsonDecode(response.body);
+  throw Exception(json['detail'] ?? 'Failed to fetch company supervisors');
+}
+
+Future<void> updateStudentCompanySupervisor(String studentId, int? companySupervisorId, {http.Client? client}) async {
+  final c = client ?? http.Client();
+  final response = await c.patch(
+    Uri.parse('$_baseUrl/admin/students/$studentId/company-supervisor'),
+    headers: _headers(),
+    body: jsonEncode({'company_supervisor_id': companySupervisorId ?? 0}),
+  );
+
+  if (client == null) c.close();
+
+  AuthState.requireAuth(response);
+
+  if (response.statusCode != 200) {
+    final json = jsonDecode(response.body);
+    throw Exception(json['detail'] ?? 'Failed to update company supervisor');
+  }
 }

@@ -298,6 +298,8 @@ class _DayEntryState extends State<_DayEntry> {
   }
 
   Widget _buildDisplay(String displayDate, String timeStr, String updateText) {
+    final verified = widget.task['verified'] == true;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -315,13 +317,33 @@ class _DayEntryState extends State<_DayEntry> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                displayDate,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1A1A1A),
-                ),
+              Row(
+                children: [
+                  Text(
+                    displayDate,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1A1A1A),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: verified ? const Color(0xFFE8F5E9) : const Color(0xFFFFF3E0),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      verified ? 'Verified' : 'Unverified',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: verified ? const Color(0xFF2E7D32) : const Color(0xFFF57C00),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 4),
               Text(

@@ -497,6 +497,48 @@ class _InterningContentState extends State<_InterningContent> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 12),
+
+                // Company Supervisor card
+                if (AuthState.currentStudent?.companySupervisor != null)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F5F5),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.supervisor_account_rounded, size: 14, color: const Color(0xFF757575)),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Company Supervisor',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF757575),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          AuthState.currentStudent!.companySupervisor!.fullname,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1A1A1A),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 const SizedBox(height: 28),
 
                 // Actions

@@ -14,6 +14,7 @@ class Student {
   String progress;
   String? internshipStartDate;
   int? internshipDurationWeeks;
+  User? companySupervisor;
 
   Student({
     required this.user,
@@ -24,6 +25,7 @@ class Student {
     required this.progress,
     this.internshipStartDate,
     this.internshipDurationWeeks,
+    this.companySupervisor,
   });
 
   Student.fromJson(Map<String, dynamic> json)
@@ -34,7 +36,10 @@ class Student {
       studentId = json['student_id'],
       progress = json['progress'],
       internshipStartDate = _emptyToNull(json['internship_start_date']),
-      internshipDurationWeeks = json['internship_duration_weeks'];
+      internshipDurationWeeks = json['internship_duration_weeks'],
+      companySupervisor = json['company_supervisor'] != null
+          ? User.fromJson(json['company_supervisor'])
+          : null;
 
   Map<String, dynamic> toJson() => {
     'user': user.toJson(),
@@ -45,5 +50,6 @@ class Student {
     'progress': progress,
     if (internshipStartDate != null) 'internship_start_date': internshipStartDate,
     if (internshipDurationWeeks != null) 'internship_duration_weeks': internshipDurationWeeks,
+    if (companySupervisor != null) 'company_supervisor': companySupervisor!.toJson(),
   };
 }

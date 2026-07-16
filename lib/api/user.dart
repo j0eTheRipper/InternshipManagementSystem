@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:internship_management_system/models/company_supervisor.dart';
 import 'package:internship_management_system/models/headhunter.dart';
 import 'package:internship_management_system/models/student.dart';
 import 'package:internship_management_system/models/user.dart';
@@ -31,6 +32,8 @@ Future<LoginResult> login(String email, String password) async {
       user = Student.fromJson(userJson);
     } else if (role == 'headhunter') {
       user = Headhunter.fromJson(userJson);
+    } else if (role == 'companySupervisor') {
+      user = CompanySupervisor.fromJson(userJson);
     } else {
       user = User.fromJson(userJson);
     }

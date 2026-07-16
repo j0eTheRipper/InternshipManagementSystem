@@ -49,6 +49,7 @@ class _SidebarState extends State<Sidebar> {
     final isHeadhunter = role == 'headhunter';
     final isInterning = AuthState.currentStudent?.progress == 'accepted';
     final isAdmin = role == 'admin';
+    final isCompanySupervisor = role == 'companySupervisor';
     final userName = AuthState.currentUser?.fullname ?? '';
 
     String roleLabel;
@@ -56,6 +57,8 @@ class _SidebarState extends State<Sidebar> {
       roleLabel = 'Student';
     } else if (isHeadhunter) {
       roleLabel = 'Headhunter';
+    } else if (isCompanySupervisor) {
+      roleLabel = 'Company Supervisor';
     } else {
       roleLabel = 'University Mentor';
     }
@@ -167,12 +170,29 @@ class _SidebarState extends State<Sidebar> {
                     route: '/admin/mentors',
                   ),
                   NavItem(
+                    icon: Icons.business_center_outlined,
+                    label: 'Company Supervisors',
+                    route: '/admin/company-supervisors',
+                  ),
+                  NavItem(
                     icon: Icons.event_available_outlined,
                     label: 'Attendance',
                     route: '/admin/attendance',
                   ),
                 ],
-                if (!isStudent && !isHeadhunter && !isAdmin) ...[
+                if (isCompanySupervisor) ...[
+                  NavItem(
+                    icon: Icons.dashboard_rounded,
+                    label: 'Dashboard',
+                    route: '/company-supervisor/dashboard',
+                  ),
+                  NavItem(
+                    icon: Icons.people_outline,
+                    label: 'My Students',
+                    route: '/company-supervisor/students',
+                  ),
+                ],
+                if (!isStudent && !isHeadhunter && !isAdmin && !isCompanySupervisor) ...[
                   NavItem(
                     icon: Icons.people_outline,
                     label: 'All Students',
