@@ -48,6 +48,7 @@ class _SidebarState extends State<Sidebar> {
     final isStudent = role == 'student';
     final isHeadhunter = role == 'headhunter';
     final isInterning = AuthState.currentStudent?.progress == 'accepted';
+    final isAdmin = role == 'admin';
     final userName = AuthState.currentUser?.fullname ?? '';
 
     String roleLabel;
@@ -105,11 +106,12 @@ class _SidebarState extends State<Sidebar> {
                   ),
                 ),
                 SizedBox(width: 9),
-                NavItem(
-                  icon: Icons.dashboard_rounded,
-                  label: 'Dashboard',
-                  route: '/dashboard',
-                ),
+                if (!isAdmin)
+                  NavItem(
+                    icon: Icons.dashboard_rounded,
+                    label: 'Dashboard',
+                    route: '/dashboard',
+                  ),
                 if (isStudent && !isInterning) ...[
                   NavItem(
                     icon: Icons.business_rounded,
@@ -148,7 +150,29 @@ class _SidebarState extends State<Sidebar> {
                     route: '/headhunter/postings',
                   ),
                 ],
-                if (!isStudent && !isHeadhunter) ...[
+                if (isAdmin) ...[
+                  NavItem(
+                    icon: Icons.dashboard_rounded,
+                    label: 'Dashboard',
+                    route: '/admin/dashboard',
+                  ),
+                  NavItem(
+                    icon: Icons.people_outline,
+                    label: 'Students',
+                    route: '/admin/students',
+                  ),
+                  NavItem(
+                    icon: Icons.school_outlined,
+                    label: 'Mentors',
+                    route: '/admin/mentors',
+                  ),
+                  NavItem(
+                    icon: Icons.event_available_outlined,
+                    label: 'Attendance',
+                    route: '/admin/attendance',
+                  ),
+                ],
+                if (!isStudent && !isHeadhunter && !isAdmin) ...[
                   NavItem(
                     icon: Icons.people_outline,
                     label: 'All Students',

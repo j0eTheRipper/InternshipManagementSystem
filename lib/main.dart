@@ -21,6 +21,11 @@ import 'package:internship_management_system/pages/resume/resume_page.dart';
 import 'package:internship_management_system/pages/login_screen/login_screen.dart';
 import 'package:internship_management_system/pages/attendance/attendance_page.dart';
 import 'package:internship_management_system/pages/work_logs/work_logs_page.dart';
+import 'package:internship_management_system/pages/admin/admin_dashboard_page.dart';
+import 'package:internship_management_system/pages/admin/admin_students_page.dart';
+import 'package:internship_management_system/pages/admin/admin_add_student_form.dart';
+import 'package:internship_management_system/pages/admin/admin_mentors_page.dart';
+import 'package:internship_management_system/pages/admin/admin_attendance_page.dart';
 
 final _router = GoRouter(
   initialLocation: '/login',
@@ -126,6 +131,26 @@ final _router = GoRouter(
         GoRoute(
           path: '/work-logs',
           builder: (context, state) => const WorkLogsPage(),
+        ),
+        GoRoute(
+          path: '/admin/dashboard',
+          builder: (context, state) => const AdminDashboardPage(),
+        ),
+        GoRoute(
+          path: '/admin/students',
+          builder: (context, state) => const AdminStudentsPage(),
+        ),
+        GoRoute(
+          path: '/admin/students/new',
+          builder: (context, state) => const AdminAddStudentForm(),
+        ),
+        GoRoute(
+          path: '/admin/mentors',
+          builder: (context, state) => const AdminMentorsPage(),
+        ),
+        GoRoute(
+          path: '/admin/attendance',
+          builder: (context, state) => const AdminAttendancePage(),
         ),
       ],
     ),

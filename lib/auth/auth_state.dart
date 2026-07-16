@@ -28,6 +28,7 @@ class AuthState {
   static bool get isStudent => currentRole == 'student';
   static bool get isMentor => currentRole == 'universityMentor';
   static bool get isHeadhunter => currentRole == 'headhunter';
+  static bool get isAdmin => currentRole == 'admin';
 
   static GoRouter? _router;
   static set router(GoRouter r) => _router = r;
