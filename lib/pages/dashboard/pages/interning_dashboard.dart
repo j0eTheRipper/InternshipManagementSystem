@@ -60,211 +60,10 @@ class _InterningDashboardState extends State<InterningDashboard> {
       );
     }
 
-    if (student.internshipStartDate == null) {
-      return _InternshipSetupForm(
-        onComplete: () async {
-          final userId = AuthState.currentUser?.userId;
-          if (userId != null) {
-            try {
-              final updated = await getStudent(userId.toString());
-              AuthState.updateStudentData(updated);
-            } catch (_) {}
-          }
-          if (mounted) setState(() {});
-        },
-      );
-    }
-
     return _InterningContent(
       company: _company,
       student: student,
       getCurrentWeek: _getCurrentWeek,
-    );
-  }
-}
-
-class _InternshipSetupForm extends StatefulWidget {
-  final VoidCallback onComplete;
-
-  const _InternshipSetupForm({required this.onComplete});
-
-  @override
-  State<_InternshipSetupForm> createState() => _InternshipSetupFormState();
-}
-
-class _InternshipSetupFormState extends State<_InternshipSetupForm> {
-  DateTime? _startDate;
-  int _durationWeeks = 12;
-  bool _saving = false;
-
-  Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-    );
-    if (picked != null) {
-      setState(() => _startDate = picked);
-    }
-  }
-
-  Future<void> _save() async {
-    if (_startDate == null) return;
-    setState(() => _saving = true);
-    try {
-      final formatted =
-          '${_startDate!.year}-${_startDate!.month.toString().padLeft(2, '0')}-${_startDate!.day.toString().padLeft(2, '0')}';
-      await updateInternshipDetails(
-        startDate: formatted,
-        durationWeeks: _durationWeeks,
-      );
-      if (mounted) widget.onComplete();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceFirst('Exception: ', '')),
-            backgroundColor: Colors.red.shade700,
-          ),
-        );
-      }
-    }
-    if (mounted) setState(() => _saving = false);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFFF8F9FA),
-      child: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 420),
-            padding: const EdgeInsets.all(28),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE0E0E0).withValues(alpha: 0.5)),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.today_rounded,
-                  size: 40,
-                  color: const Color(0xFF030213),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Set Up Your Internship',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1A1A1A),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Tell us when your internship starts and how long it lasts so we can track your progress.',
-                  style: TextStyle(fontSize: 14, color: Color(0xFF717182)),
-                ),
-                const SizedBox(height: 28),
-                const Text(
-                  'Start date',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
-                ),
-                const SizedBox(height: 8),
-                InkWell(
-                  onTap: _pickDate,
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFFE0E0E0)),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.calendar_today, size: 18, color: const Color(0xFF717182)),
-                        const SizedBox(width: 12),
-                        Text(
-                          _startDate != null
-                              ? '${_startDate!.day}/${_startDate!.month}/${_startDate!.year}'
-                              : 'Select date',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: _startDate != null ? const Color(0xFF1A1A1A) : const Color(0xFF9E9E9E),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Duration (weeks)',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    IconButton(
-                      onPressed: _durationWeeks > 1
-                          ? () => setState(() => _durationWeeks--)
-                          : null,
-                      icon: const Icon(Icons.remove_circle_outline),
-                      color: const Color(0xFF030213),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      '$_durationWeeks',
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1A1A1A),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    IconButton(
-                      onPressed: _durationWeeks < 52
-                          ? () => setState(() => _durationWeeks++)
-                          : null,
-                      icon: const Icon(Icons.add_circle_outline),
-                      color: const Color(0xFF030213),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 28),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: _startDate != null && !_saving ? _save : null,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF030213),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    child: _saving
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                          )
-                        : const Text(
-                            'Get Started',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                          ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
@@ -500,7 +299,7 @@ class _InterningContentState extends State<_InterningContent> {
                 const SizedBox(height: 12),
 
                 // Company Supervisor card
-                if (AuthState.currentStudent?.companySupervisor != null)
+                if (AuthState.currentStudent?.companySupervisor != null || AuthState.currentStudent?.companySupervisorName != null)
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
@@ -527,7 +326,9 @@ class _InterningContentState extends State<_InterningContent> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          AuthState.currentStudent!.companySupervisor!.fullname,
+                          AuthState.currentStudent!.companySupervisor?.fullname ??
+                              AuthState.currentStudent!.companySupervisorName ??
+                              '—',
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -536,6 +337,20 @@ class _InterningContentState extends State<_InterningContent> {
                             color: Color(0xFF1A1A1A),
                           ),
                         ),
+                        if (AuthState.currentStudent!.companySupervisorEmail != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            AuthState.currentStudent!.companySupervisorEmail!,
+                            style: const TextStyle(fontSize: 13, color: Color(0xFF757575)),
+                          ),
+                        ],
+                        if (AuthState.currentStudent!.companySupervisorPhone != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            AuthState.currentStudent!.companySupervisorPhone!,
+                            style: const TextStyle(fontSize: 13, color: Color(0xFF757575)),
+                          ),
+                        ],
                       ],
                     ),
                   ),

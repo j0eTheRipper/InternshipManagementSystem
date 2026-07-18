@@ -48,6 +48,7 @@ class _SidebarState extends State<Sidebar> {
     final isStudent = role == 'student';
     final isHeadhunter = role == 'headhunter';
     final isInterning = AuthState.currentStudent?.progress == 'accepted';
+    final isPendingDocs = AuthState.currentStudent?.progress == 'pending_documents';
     final isAdmin = role == 'admin';
     final isCompanySupervisor = role == 'companySupervisor';
     final userName = AuthState.currentUser?.fullname ?? '';
@@ -115,7 +116,7 @@ class _SidebarState extends State<Sidebar> {
                     label: 'Dashboard',
                     route: '/dashboard',
                   ),
-                if (isStudent && !isInterning) ...[
+                if (isStudent && !isInterning && !isPendingDocs) ...[
                   NavItem(
                     icon: Icons.business_rounded,
                     label: 'Opportunities',
@@ -134,7 +135,7 @@ class _SidebarState extends State<Sidebar> {
                     route: '/work-logs',
                   ),
                 ],
-                if (isStudent && !isInterning) ...[
+                if (isStudent && !isInterning && !isPendingDocs) ...[
                   NavItem(
                     icon: Icons.assignment_rounded,
                     label: 'My Applications',
@@ -202,6 +203,11 @@ class _SidebarState extends State<Sidebar> {
                     icon: Icons.folder_outlined,
                     label: 'Student Documents',
                     route: '/mentor/student-documents',
+                  ),
+                  NavItem(
+                    icon: Icons.pending_actions_outlined,
+                    label: 'Pending Documents',
+                    route: '/mentor/pending-documents',
                   ),
                 ],
                 _NotificationNavItem(unreadCount: _unreadCount),

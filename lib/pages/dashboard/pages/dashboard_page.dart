@@ -7,6 +7,7 @@ import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/models/opportunity.dart';
 import 'package:internship_management_system/models/student.dart';
 import 'package:internship_management_system/pages/dashboard/pages/interning_dashboard.dart';
+import 'package:internship_management_system/pages/pending_documents/pending_documents_page.dart';
 import 'package:internship_management_system/pages/admin/admin_dashboard_page.dart';
 
 class DashboardPage extends StatelessWidget {
@@ -15,6 +16,9 @@ class DashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (AuthState.isStudent) {
+      if (AuthState.currentStudent?.progress == 'pending_documents') {
+        return const PendingDocumentsPage();
+      }
       if (AuthState.currentStudent?.progress == 'accepted') {
         return const InterningDashboard();
       }

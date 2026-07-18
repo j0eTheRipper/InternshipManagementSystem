@@ -87,6 +87,34 @@ Future<void> updateInternshipDetails({
   }
 }
 
+Future<void> submitSupervisorDetails({
+  required String name,
+  required String email,
+  required String phone,
+}) async {
+  final token = AuthState.token;
+  final request = http.MultipartRequest(
+    'PATCH',
+    Uri.parse('$_baseUrl/student/supervisor-details'),
+  );
+  request.headers.addAll({
+    if (token != null) 'Authorization': 'Bearer $token',
+  });
+  request.fields['name'] = name;
+  request.fields['email'] = email;
+  request.fields['phone'] = phone;
+
+  final streamed = await request.send();
+  final response = await http.Response.fromStream(streamed);
+
+  AuthState.requireAuth(response);
+
+  if (response.statusCode != 200) {
+    final json = jsonDecode(response.body);
+    throw Exception(json['detail'] ?? 'Failed to submit supervisor details');
+  }
+}
+
 Future<List<Student>> getMentorStudents({http.Client? client}) async {
   final token = AuthState.token;
   final c = client ?? http.Client();

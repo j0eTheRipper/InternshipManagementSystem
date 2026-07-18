@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:internship_management_system/api/indemnity_letter.dart';
 import 'package:internship_management_system/api/offer_letter.dart';
+import 'package:internship_management_system/api/placement_agreement.dart';
 import 'package:internship_management_system/api/resume.dart';
 import 'package:internship_management_system/api/student.dart';
+import 'package:internship_management_system/models/indemnity_letter.dart';
+import 'package:internship_management_system/models/placement_agreement.dart';
 import 'package:internship_management_system/models/resume.dart';
 import 'package:internship_management_system/models/student.dart';
 import 'package:internship_management_system/open_pdf.dart';
@@ -20,6 +24,8 @@ class _StudentDetailPageState extends State<StudentDetailPage> {
   String? _company;
   List<ResumeData> _resumes = [];
   List<dynamic> _offerLetters = [];
+  IndemnityLetterData? _indemnityLetter;
+  PlacementAgreementData? _placementAgreement;
   bool _loading = true;
   final Map<String, bool> _openingPdf = {};
 
@@ -47,6 +53,8 @@ class _StudentDetailPageState extends State<StudentDetailPage> {
 
       List<ResumeData> resumes = [];
       List<dynamic> offerLetters = [];
+      IndemnityLetterData? indemnityLetter;
+      PlacementAgreementData? placementAgreement;
 
       if (student != null) {
         try {
@@ -59,6 +67,12 @@ class _StudentDetailPageState extends State<StudentDetailPage> {
         } catch (_) {
           offerLetters = [];
         }
+        try {
+          indemnityLetter = await getIndemnityLetterByStudent(student.studentId);
+        } catch (_) {}
+        try {
+          placementAgreement = await getPlacementAgreementByStudent(student.studentId);
+        } catch (_) {}
       }
 
       if (mounted) {
@@ -67,6 +81,8 @@ class _StudentDetailPageState extends State<StudentDetailPage> {
           _company = company;
           _resumes = resumes;
           _offerLetters = offerLetters;
+          _indemnityLetter = indemnityLetter;
+          _placementAgreement = placementAgreement;
           _loading = false;
         });
       }
@@ -79,6 +95,7 @@ class _StudentDetailPageState extends State<StudentDetailPage> {
     switch (progress) {
       case 'resume':
       case 'offer_letter':
+      case 'pending_documents':
         return 'Pending Review';
       default:
         return 'Active';
@@ -121,6 +138,84 @@ class _StudentDetailPageState extends State<StudentDetailPage> {
       }
     }
     if (mounted) setState(() => _openingPdf[key] = false);
+  }
+
+  Future<void> _viewIndemnityLetter() async {
+    if (_indemnityLetter == null) return;
+    final key = 'indemnity:${_indemnityLetter!.indemnityLetterId}';
+    setState(() => _openingPdf[key] = true);
+    try {
+      final bytes = await downloadIndemnityLetter(_indemnityLetter!.indemnityLetterId);
+      openPdfInBrowser(bytes, fileName: 'indemnity_letter.pdf');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
+    }
+    if (mounted) setState(() => _openingPdf[key] = false);
+  }
+
+  Future<void> _viewPlacementAgreement() async {
+    if (_placementAgreement == null) return;
+    final key = 'placement:${_placementAgreement!.placementAgreementId}';
+    setState(() => _openingPdf[key] = true);
+    try {
+      final bytes = await downloadPlacementAgreement(_placementAgreement!.placementAgreementId);
+      openPdfInBrowser(bytes, fileName: 'placement_agreement.pdf');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
+    }
+    if (mounted) setState(() => _openingPdf[key] = false);
+  }
+
+  Future<void> _approveIndemnityLetter() async {
+    if (_indemnityLetter == null) return;
+    try {
+      await approveIndemnityLetter(_indemnityLetter!.indemnityLetterId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Indemnity letter approved'), backgroundColor: Color(0xFF2E7D32)),
+        );
+      }
+      _fetchData();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', '')), backgroundColor: Colors.red.shade700),
+        );
+      }
+    }
+  }
+
+  Future<void> _approvePlacementAgreement() async {
+    if (_placementAgreement == null) return;
+    try {
+      await approvePlacementAgreement(_placementAgreement!.placementAgreementId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Placement agreement approved'), backgroundColor: Color(0xFF2E7D32)),
+        );
+      }
+      _fetchData();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', '')), backgroundColor: Colors.red.shade700),
+        );
+      }
+    }
   }
 
   Future<void> _approveResume(int resumeId) async {
@@ -381,6 +476,8 @@ class _StudentDetailPageState extends State<StudentDetailPage> {
 
     final hasResumes = _resumes.isNotEmpty;
     final hasOfferLetters = _offerLetters.isNotEmpty;
+    final hasIndemnity = _indemnityLetter != null;
+    final hasPlacement = _placementAgreement != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -394,7 +491,7 @@ class _StudentDetailPageState extends State<StudentDetailPage> {
           ),
         ),
         const SizedBox(height: 16),
-        if (!hasResumes && !hasOfferLetters)
+        if (!hasResumes && !hasOfferLetters && !hasIndemnity && !hasPlacement)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(32),
@@ -428,7 +525,7 @@ class _StudentDetailPageState extends State<StudentDetailPage> {
               onView: () => _viewResume(r.resumeId),
             )).toList(),
           ),
-          if (hasResumes && hasOfferLetters) const SizedBox(height: 20),
+          if (hasResumes && (hasOfferLetters || hasIndemnity || hasPlacement)) const SizedBox(height: 20),
           if (hasOfferLetters) _buildTypeSection(
             title: 'Offer Letters',
             icon: Icons.mail_outline_rounded,
@@ -444,6 +541,46 @@ class _StudentDetailPageState extends State<StudentDetailPage> {
               title: ol['opportunity_title'] ?? 'Offer Letter',
               onView: () => _viewOfferLetter(ol['offer_letter_id'] as int),
             )).toList(),
+          ),
+          if (hasOfferLetters && (hasIndemnity || hasPlacement)) const SizedBox(height: 20),
+          if (hasIndemnity) _buildTypeSection(
+            title: 'Indemnity Letter',
+            icon: Icons.security_outlined,
+            pendingList: !_indemnityLetter!.verified ? [
+              _DocumentItem(
+                key: 'indemnity:${_indemnityLetter!.indemnityLetterId}',
+                title: 'Indemnity Letter',
+                onView: () => _viewIndemnityLetter(),
+                onApprove: () => _approveIndemnityLetter(),
+              ),
+            ] : [],
+            reviewedList: _indemnityLetter!.verified ? [
+              _DocumentItem(
+                key: 'indemnity:${_indemnityLetter!.indemnityLetterId}',
+                title: 'Indemnity Letter',
+                onView: () => _viewIndemnityLetter(),
+              ),
+            ] : [],
+          ),
+          if (hasIndemnity && hasPlacement) const SizedBox(height: 20),
+          if (hasPlacement) _buildTypeSection(
+            title: 'Placement Agreement',
+            icon: Icons.assignment_outlined,
+            pendingList: !_placementAgreement!.verified ? [
+              _DocumentItem(
+                key: 'placement:${_placementAgreement!.placementAgreementId}',
+                title: 'Placement Agreement',
+                onView: () => _viewPlacementAgreement(),
+                onApprove: () => _approvePlacementAgreement(),
+              ),
+            ] : [],
+            reviewedList: _placementAgreement!.verified ? [
+              _DocumentItem(
+                key: 'placement:${_placementAgreement!.placementAgreementId}',
+                title: 'Placement Agreement',
+                onView: () => _viewPlacementAgreement(),
+              ),
+            ] : [],
           ),
         ],
       ],

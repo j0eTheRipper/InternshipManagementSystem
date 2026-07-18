@@ -28,6 +28,7 @@ import 'package:internship_management_system/pages/admin/admin_mentors_page.dart
 import 'package:internship_management_system/pages/admin/admin_attendance_page.dart';
 import 'package:internship_management_system/pages/admin/admin_company_supervisors_page.dart';
 import 'package:internship_management_system/pages/company_supervisor/company_supervisor_pages.dart';
+import 'package:internship_management_system/pages/mentor/pending_documents_verification_page.dart';
 
 final _router = GoRouter(
   initialLocation: '/login',
@@ -47,6 +48,12 @@ final _router = GoRouter(
     final isInterning = AuthState.isStudent &&
         AuthState.currentStudent?.progress == 'accepted';
     if (isInterning && (location == '/opportunities' || location.startsWith('/opportunities/'))) {
+      return '/dashboard';
+    }
+
+    final isPendingDocs = AuthState.isStudent &&
+        AuthState.currentStudent?.progress == 'pending_documents';
+    if (isPendingDocs && location != '/dashboard' && location != '/notifications' && location != '/profile') {
       return '/dashboard';
     }
 
@@ -117,6 +124,10 @@ final _router = GoRouter(
           builder: (context, state) => StudentDetailPage(
             studentId: state.pathParameters['studentId']!,
           ),
+        ),
+        GoRoute(
+          path: '/mentor/pending-documents',
+          builder: (context, state) => const MentorPendingDocumentsPage(),
         ),
         GoRoute(
           path: '/notifications',

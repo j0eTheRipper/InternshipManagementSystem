@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:internship_management_system/api/indemnity_letter.dart';
 import 'package:internship_management_system/api/offer_letter.dart';
+import 'package:internship_management_system/api/placement_agreement.dart';
 import 'package:internship_management_system/api/resume.dart';
 import 'package:internship_management_system/api/student.dart';
+import 'package:internship_management_system/models/indemnity_letter.dart';
+import 'package:internship_management_system/models/placement_agreement.dart';
 import 'package:internship_management_system/models/resume.dart';
 import 'package:internship_management_system/models/student.dart';
 import 'package:internship_management_system/open_pdf.dart';
@@ -17,6 +21,8 @@ class _StudentDocumentsPageState extends State<StudentDocumentsPage> {
   List<Student> _students = [];
   Map<String, List<ResumeData>> _resumeCache = {};
   Map<String, List<Map<String, dynamic>>> _offerLetterCache = {};
+  Map<String, IndemnityLetterData?> _indemnityCache = {};
+  Map<String, PlacementAgreementData?> _placementCache = {};
   String? _expandedStudentId;
   final Map<String, bool> _openingPdf = {};
   bool _loading = true;
@@ -40,11 +46,23 @@ class _StudentDocumentsPageState extends State<StudentDocumentsPage> {
       }
 
       final resumeCache = <String, List<ResumeData>>{};
+      final indemnityCache = <String, IndemnityLetterData?>{};
+      final placementCache = <String, PlacementAgreementData?>{};
       for (final s in students) {
         try {
           resumeCache[s.studentId] = await getResume(studentId: s.studentId);
         } catch (_) {
           resumeCache[s.studentId] = [];
+        }
+        try {
+          indemnityCache[s.studentId] = await getIndemnityLetterByStudent(s.studentId);
+        } catch (_) {
+          indemnityCache[s.studentId] = null;
+        }
+        try {
+          placementCache[s.studentId] = await getPlacementAgreementByStudent(s.studentId);
+        } catch (_) {
+          placementCache[s.studentId] = null;
         }
       }
 
@@ -53,6 +71,8 @@ class _StudentDocumentsPageState extends State<StudentDocumentsPage> {
           _students = students;
           _resumeCache = resumeCache;
           _offerLetterCache = offerLetterMap;
+          _indemnityCache = indemnityCache;
+          _placementCache = placementCache;
           _loading = false;
         });
       }
@@ -64,24 +84,32 @@ class _StudentDocumentsPageState extends State<StudentDocumentsPage> {
   bool _shouldShowStudent(Student student) {
     final resumes = _resumeCache[student.studentId] ?? [];
     final offerLetters = _offerLetterCache[student.studentId] ?? [];
+    final indemnity = _indemnityCache[student.studentId];
+    final placement = _placementCache[student.studentId];
 
     final hasUnverifiedResume = resumes.any((r) => !r.verified);
     final hasUnverifiedOfferLetter = offerLetters.any((ol) => ol['verified'] != true);
+    final hasUnverifiedIndemnity = indemnity != null && !indemnity.verified;
+    final hasUnverifiedPlacement = placement != null && !placement.verified;
 
-    if (hasUnverifiedResume || hasUnverifiedOfferLetter) return true;
-    if (resumes.isEmpty && offerLetters.isEmpty) return true;
+    if (hasUnverifiedResume || hasUnverifiedOfferLetter || hasUnverifiedIndemnity || hasUnverifiedPlacement) return true;
+    if (resumes.isEmpty && offerLetters.isEmpty && indemnity == null && placement == null) return true;
     return false;
   }
 
   String _studentStatus(Student student) {
     final resumes = _resumeCache[student.studentId] ?? [];
     final offerLetters = _offerLetterCache[student.studentId] ?? [];
+    final indemnity = _indemnityCache[student.studentId];
+    final placement = _placementCache[student.studentId];
 
     final hasUnverifiedResume = resumes.any((r) => !r.verified);
     final hasUnverifiedOfferLetter = offerLetters.any((ol) => ol['verified'] != true);
+    final hasUnverifiedIndemnity = indemnity != null && !indemnity.verified;
+    final hasUnverifiedPlacement = placement != null && !placement.verified;
 
-    if (hasUnverifiedResume || hasUnverifiedOfferLetter) return 'Pending Review';
-    if (resumes.isEmpty && offerLetters.isEmpty) return 'No Documents';
+    if (hasUnverifiedResume || hasUnverifiedOfferLetter || hasUnverifiedIndemnity || hasUnverifiedPlacement) return 'Pending Review';
+    if (resumes.isEmpty && offerLetters.isEmpty && indemnity == null && placement == null) return 'No Documents';
     return 'Complete';
   }
 
@@ -228,6 +256,90 @@ class _StudentDocumentsPageState extends State<StudentDocumentsPage> {
     }
   }
 
+  Future<void> _viewIndemnity(int id) async {
+    try {
+      final bytes = await downloadIndemnityLetter(id);
+      openPdfInBrowser(bytes, fileName: 'indemnity_letter_$id');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', '')), backgroundColor: Colors.red.shade700),
+        );
+      }
+    }
+  }
+
+  Future<void> _viewPlacement(int id) async {
+    try {
+      final bytes = await downloadPlacementAgreement(id);
+      openPdfInBrowser(bytes, fileName: 'placement_agreement_$id');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', '')), backgroundColor: Colors.red.shade700),
+        );
+      }
+    }
+  }
+
+  Future<void> _approveIndemnity(int id) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Approve indemnity letter'),
+        content: const Text('Are you sure you want to approve this indemnity letter?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Approve')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    try {
+      await approveIndemnityLetter(id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Indemnity letter approved')));
+      }
+      _fetchData();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', '')), backgroundColor: Colors.red.shade700),
+        );
+      }
+    }
+  }
+
+  Future<void> _approvePlacement(int id) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Approve placement agreement'),
+        content: const Text('Are you sure you want to approve this placement agreement?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Approve')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    try {
+      await approvePlacementAgreement(id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Placement agreement approved')));
+      }
+      _fetchData();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', '')), backgroundColor: Colors.red.shade700),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final shown = _students.where(_shouldShowStudent).toList();
@@ -287,6 +399,8 @@ class _StudentDocumentsPageState extends State<StudentDocumentsPage> {
   Widget _buildStudentCard(Student student) {
     final resumes = _resumeCache[student.studentId] ?? [];
     final offerLetters = _offerLetterCache[student.studentId] ?? [];
+    final indemnity = _indemnityCache[student.studentId];
+    final placement = _placementCache[student.studentId];
     final isExpanded = _expandedStudentId == student.studentId;
     final status = _studentStatus(student);
 
@@ -294,6 +408,13 @@ class _StudentDocumentsPageState extends State<StudentDocumentsPage> {
     final reviewedResumes = resumes.where((r) => r.verified).toList();
     final pendingOfferLetters = offerLetters.where((ol) => ol['verified'] != true).toList();
     final reviewedOfferLetters = offerLetters.where((ol) => ol['verified'] == true).toList();
+    final hasPendingIndemnity = indemnity != null && !indemnity.verified;
+    final hasReviewedIndemnity = indemnity != null && indemnity.verified;
+    final hasPendingPlacement = placement != null && !placement.verified;
+    final hasReviewedPlacement = placement != null && placement.verified;
+
+    final hasPendingDocs = pendingResumes.isNotEmpty || pendingOfferLetters.isNotEmpty || hasPendingIndemnity || hasPendingPlacement;
+    final hasReviewedDocs = reviewedResumes.isNotEmpty || reviewedOfferLetters.isNotEmpty || hasReviewedIndemnity || hasReviewedPlacement;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -375,7 +496,7 @@ class _StudentDocumentsPageState extends State<StudentDocumentsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (pendingResumes.isNotEmpty || pendingOfferLetters.isNotEmpty) ...[
+                    if (hasPendingDocs) ...[
                       const Text(
                         'Pending Reviews',
                         style: TextStyle(
@@ -403,10 +524,27 @@ class _StudentDocumentsPageState extends State<StudentDocumentsPage> {
                           onReject: () => _rejectOfferLetter(ol['offer_letter_id'] as int),
                         ),
                       ),
-                      if (reviewedResumes.isNotEmpty || reviewedOfferLetters.isNotEmpty)
-                        const SizedBox(height: 20),
+                      if (hasPendingIndemnity)
+                        _DocumentRow(
+                          icon: Icons.description_outlined,
+                          label: 'Indemnity Letter',
+                          verified: false,
+                          openingPdf: _openingPdf,
+                          onView: () => _viewIndemnity(indemnity!.indemnityLetterId),
+                          onApprove: () => _approveIndemnity(indemnity!.indemnityLetterId),
+                        ),
+                      if (hasPendingPlacement)
+                        _DocumentRow(
+                          icon: Icons.article_outlined,
+                          label: 'Placement Agreement',
+                          verified: false,
+                          openingPdf: _openingPdf,
+                          onView: () => _viewPlacement(placement!.placementAgreementId),
+                          onApprove: () => _approvePlacement(placement!.placementAgreementId),
+                        ),
+                      if (hasReviewedDocs) const SizedBox(height: 20),
                     ],
-                    if (reviewedResumes.isNotEmpty || reviewedOfferLetters.isNotEmpty) ...[
+                    if (hasReviewedDocs) ...[
                       const Text(
                         'Reviewed Documents',
                         style: TextStyle(
@@ -431,8 +569,24 @@ class _StudentDocumentsPageState extends State<StudentDocumentsPage> {
                           onView: () => _viewOfferLetter(ol['offer_letter_id'] as int),
                         ),
                       ),
+                      if (hasReviewedIndemnity)
+                        _DocumentRow(
+                          icon: Icons.description_outlined,
+                          label: 'Indemnity Letter',
+                          verified: true,
+                          openingPdf: _openingPdf,
+                          onView: () => _viewIndemnity(indemnity!.indemnityLetterId),
+                        ),
+                      if (hasReviewedPlacement)
+                        _DocumentRow(
+                          icon: Icons.article_outlined,
+                          label: 'Placement Agreement',
+                          verified: true,
+                          openingPdf: _openingPdf,
+                          onView: () => _viewPlacement(placement!.placementAgreementId),
+                        ),
                     ],
-                    if (resumes.isEmpty && offerLetters.isEmpty)
+                    if (!hasPendingDocs && !hasReviewedDocs)
                       const Padding(
                         padding: EdgeInsets.symmetric(vertical: 8),
                         child: Text(
@@ -692,6 +846,88 @@ class _OfferLetterRow extends StatelessWidget {
                 ),
               ),
               child: const Text('Reject'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _DocumentRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool verified;
+  final Map<String, bool> openingPdf;
+  final VoidCallback onView;
+  final VoidCallback? onApprove;
+
+  const _DocumentRow({
+    required this.icon,
+    required this.label,
+    required this.verified,
+    required this.openingPdf,
+    required this.onView,
+    this.onApprove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 18,
+            color: const Color(0xFF030213).withValues(alpha: 0.6),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF1A1A1A),
+                  ),
+                ),
+                Text(
+                  verified ? 'Approved' : 'Pending',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: verified
+                        ? const Color(0xFF2E7D32)
+                        : const Color(0xFFE65100),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          OutlinedButton.icon(
+            onPressed: onView,
+            icon: const Icon(Icons.visibility_outlined, size: 16),
+            label: const Text('View'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF030213),
+              side: const BorderSide(color: Color(0xFFE0E0E0)),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              textStyle: const TextStyle(fontSize: 13),
+            ),
+          ),
+          if (onApprove != null) ...[
+            const SizedBox(width: 8),
+            FilledButton(
+              onPressed: onApprove,
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF2E7D32),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              ),
+              child: const Text('Approve'),
             ),
           ],
         ],
