@@ -59,10 +59,13 @@ class _AttendancePageState extends State<AttendancePage> {
                     _buildEmptyState()
                   else
                     Expanded(
-                      child: ListView.separated(
-                        itemCount: _history.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 4),
-                        itemBuilder: (context, index) => _buildRow(_history[index]),
+                      child: RefreshIndicator(
+                        onRefresh: _fetchHistory,
+                        child: ListView.separated(
+                          itemCount: _history.length,
+                          separatorBuilder: (_, _) => const SizedBox(height: 4),
+                          itemBuilder: (context, index) => _buildRow(_history[index]),
+                        ),
                       ),
                     ),
                 ],

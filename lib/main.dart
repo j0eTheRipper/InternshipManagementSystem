@@ -1,7 +1,10 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
+import 'package:internship_management_system/services/push_notification_service.dart';
 import 'package:internship_management_system/pages/dashboard/dashboard_layout.dart';
 import 'package:internship_management_system/pages/chat/chat_page.dart';
 import 'package:internship_management_system/pages/dashboard/pages/dashboard_page.dart';
@@ -46,15 +49,21 @@ final _router = GoRouter(
     }
 
     final location = state.matchedLocation;
-    final isInterning = AuthState.isStudent &&
-        AuthState.currentStudent?.progress == 'accepted';
-    if (isInterning && (location == '/opportunities' || location.startsWith('/opportunities/'))) {
+    final isInterning =
+        AuthState.isStudent && AuthState.currentStudent?.progress == 'accepted';
+    if (isInterning &&
+        (location == '/opportunities' ||
+            location.startsWith('/opportunities/'))) {
       return '/dashboard';
     }
 
-    final isPendingDocs = AuthState.isStudent &&
+    final isPendingDocs =
+        AuthState.isStudent &&
         AuthState.currentStudent?.progress == 'pending_documents';
-    if (isPendingDocs && location != '/dashboard' && location != '/notifications' && location != '/profile') {
+    if (isPendingDocs &&
+        location != '/dashboard' &&
+        location != '/notifications' &&
+        location != '/profile') {
       return '/dashboard';
     }
 
@@ -122,9 +131,8 @@ final _router = GoRouter(
         ),
         GoRoute(
           path: '/mentor/student-detail/:studentId',
-          builder: (context, state) => StudentDetailPage(
-            studentId: state.pathParameters['studentId']!,
-          ),
+          builder: (context, state) =>
+              StudentDetailPage(studentId: state.pathParameters['studentId']!),
         ),
         GoRoute(
           path: '/mentor/pending-documents',
@@ -185,8 +193,14 @@ final _router = GoRouter(
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (!kIsWeb) {
+    await Firebase.initializeApp();
+  }
   await dotenv.load();
   await AuthState.init();
+  if (!kIsWeb) {
+    await PushNotificationService.init();
+  }
   AuthState.router = _router;
   runApp(const MyApp());
 }

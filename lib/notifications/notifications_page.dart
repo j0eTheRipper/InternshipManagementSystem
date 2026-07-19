@@ -51,7 +51,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFFF8F9FA),
-      child: SingleChildScrollView(
+      child: RefreshIndicator(
+        onRefresh: _load,
+        child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,6 +74,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
             else
               ..._notifications!.map(_buildNotificationCard),
           ],
+        ),
         ),
       ),
     );

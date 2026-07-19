@@ -215,11 +215,13 @@ class _ExternalApplicationDetailPageState extends State<ExternalApplicationDetai
 
     final app = _application!;
 
-    return ListView(
-      padding: const EdgeInsets.all(24),
-      children: [
-        Text(
-          app.companyName ?? 'Unknown Company',
+    return RefreshIndicator(
+      onRefresh: _fetch,
+      child: ListView(
+        padding: const EdgeInsets.all(24),
+        children: [
+          Text(
+            app.companyName ?? 'Unknown Company',
           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A)),
         ),
         const SizedBox(height: 4),
@@ -332,6 +334,7 @@ class _ExternalApplicationDetailPageState extends State<ExternalApplicationDetai
           _buildOfferLetterStatus(),
         ],
       ],
+      ),
     );
   }
 

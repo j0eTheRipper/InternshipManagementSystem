@@ -203,7 +203,9 @@ class _PendingDocumentsPageState extends State<PendingDocumentsPage> {
     return Container(
       color: const Color(0xFFF8F9FA),
       child: Center(
-        child: SingleChildScrollView(
+        child: RefreshIndicator(
+          onRefresh: _loadData,
+          child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Container(
             constraints: const BoxConstraints(maxWidth: 520),
@@ -225,6 +227,7 @@ class _PendingDocumentsPageState extends State<PendingDocumentsPage> {
                 if (allDone) _buildWaitingCard() else _buildCurrentStepContent(),
               ],
             ),
+          ),
           ),
         ),
       ),

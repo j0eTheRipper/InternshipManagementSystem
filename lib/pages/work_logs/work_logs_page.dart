@@ -82,8 +82,11 @@ class _WorkLogsPageState extends State<WorkLogsPage> {
                     _buildEmptyState()
                   else
                     Expanded(
-                      child: ListView(
-                        children: _buildWeekCards(),
+                      child: RefreshIndicator(
+                        onRefresh: _fetchTasks,
+                        child: ListView(
+                          children: _buildWeekCards(),
+                        ),
                       ),
                     ),
                 ],

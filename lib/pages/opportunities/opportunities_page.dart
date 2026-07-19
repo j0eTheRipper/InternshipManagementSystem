@@ -97,20 +97,23 @@ class _OpportunitiesPageState extends State<OpportunitiesPage> {
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      itemCount: _opportunities!.length,
-      itemBuilder: (context, index) {
-        final opp = _opportunities![index];
-        return _OpportunityCard(
-          company: opp.company ?? 'Unknown',
-          role: opp.jobRole,
-          title: opp.title,
-          location: opp.location,
-          status: opp.status,
-          onTap: () => context.go('/opportunities/${opp.opportunityId}'),
-        );
-      },
+    return RefreshIndicator(
+      onRefresh: _fetch,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        itemCount: _opportunities!.length,
+        itemBuilder: (context, index) {
+          final opp = _opportunities![index];
+          return _OpportunityCard(
+            company: opp.company ?? 'Unknown',
+            role: opp.jobRole,
+            title: opp.title,
+            location: opp.location,
+            status: opp.status,
+            onTap: () => context.go('/opportunities/${opp.opportunityId}'),
+          );
+        },
+      ),
     );
   }
 }

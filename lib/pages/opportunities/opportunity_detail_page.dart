@@ -298,11 +298,13 @@ class _OpportunityDetailPageState extends State<OpportunityDetailPage> {
       appBar: AppBar(title: Text(opp.title)),
       body: Container(
         color: const Color(0xFFF8F9FA),
-        child: ListView(
-          padding: const EdgeInsets.all(24),
-          children: [
-            Text(
-              '${opp.company} · ${opp.jobRole}',
+        child: RefreshIndicator(
+          onRefresh: _fetch,
+          child: ListView(
+            padding: const EdgeInsets.all(24),
+            children: [
+              Text(
+                '${opp.company} · ${opp.jobRole}',
               style: const TextStyle(fontSize: 16, color: Color(0xFF717182)),
             ),
             const SizedBox(height: 4),
@@ -440,6 +442,7 @@ class _OpportunityDetailPageState extends State<OpportunityDetailPage> {
                 ),
               ),
           ],
+          ),
         ),
       ),
     );

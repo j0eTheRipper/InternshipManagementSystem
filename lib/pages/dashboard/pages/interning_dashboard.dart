@@ -123,14 +123,16 @@ class _InterningContentState extends State<_InterningContent> {
       color: const Color(0xFFF8F9FA),
       child: Stack(
         children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 8),
-                Text(
-                  'Welcome back,',
+          RefreshIndicator(
+            onRefresh: _fetchAttendance,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 8),
+                  Text(
+                    'Welcome back,',
                   style: const TextStyle(fontSize: 14, color: Color(0xFF757575)),
                 ),
                 const SizedBox(height: 4),
@@ -389,6 +391,7 @@ class _InterningContentState extends State<_InterningContent> {
                 ),
               ],
             ),
+          ),
           ),
 
           // Daily check-in overlay

@@ -123,7 +123,9 @@ class _StudentResumeViewState extends State<_StudentResumeView> {
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFFF8F9FA),
-      child: SingleChildScrollView(
+      child: RefreshIndicator(
+        onRefresh: _loadResume,
+        child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,6 +144,7 @@ class _StudentResumeViewState extends State<_StudentResumeView> {
             else
               _buildStudentContent(),
           ],
+        ),
         ),
       ),
     );

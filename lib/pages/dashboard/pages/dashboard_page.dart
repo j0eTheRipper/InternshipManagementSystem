@@ -97,13 +97,15 @@ class _StudentDashboardState extends State<_StudentDashboard> {
 
     return Container(
       color: const Color(0xFFF8F9FA),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Welcome back, ${user?.fullname ?? 'Student'}',
+      child: RefreshIndicator(
+        onRefresh: _fetchData,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Welcome back, ${user?.fullname ?? 'Student'}',
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
@@ -192,6 +194,7 @@ class _StudentDashboardState extends State<_StudentDashboard> {
                 ),
               ),
           ],
+        ),
         ),
       ),
     );

@@ -6,6 +6,7 @@ import 'package:internship_management_system/models/company_supervisor.dart';
 import 'package:internship_management_system/models/headhunter.dart';
 import 'package:internship_management_system/models/student.dart';
 import 'package:internship_management_system/models/user.dart';
+import 'package:internship_management_system/services/push_notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthState {
@@ -39,6 +40,7 @@ class AuthState {
 
   static void handleUnauthorized() {
     if (!_isLoggedIn) return;
+    PushNotificationService.deleteToken();
     _currentUser = null;
     _currentStudent = null;
     _currentHeadhunter = null;
@@ -133,6 +135,7 @@ class AuthState {
       await prefs.setString('user_json', jsonEncode(user.toJson()));
     }
     await prefs.setString('auth_token', token);
+    PushNotificationService.sendCurrentToken();
   }
 
   static Future<void> updateStudentData(Student student) async {
@@ -143,6 +146,7 @@ class AuthState {
   }
 
   static Future<void> logout() async {
+    PushNotificationService.deleteToken();
     _currentUser = null;
     _currentStudent = null;
     _currentHeadhunter = null;
