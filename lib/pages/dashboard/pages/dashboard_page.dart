@@ -525,11 +525,13 @@ class _ProgressCard extends StatelessWidget {
                 );
               }
               final stageIndex = index ~/ 2;
-              return _StageIndicator(
-                number: stageIndex + 1,
-                label: stages[stageIndex],
-                isActive: stageIndex == currentIndex,
-                isCompleted: stageIndex < currentIndex,
+              return Expanded(
+                child: _StageIndicator(
+                  number: stageIndex + 1,
+                  label: stages[stageIndex],
+                  isActive: stageIndex == currentIndex,
+                  isCompleted: stageIndex < currentIndex,
+                ),
               );
             }),
           ),
@@ -583,6 +585,9 @@ class _StageIndicator extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 12,
             fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
@@ -629,7 +634,7 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             value,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 22,

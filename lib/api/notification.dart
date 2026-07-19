@@ -3,14 +3,13 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/models/notification.dart';
-
-const _baseUrl = 'http://localhost:8000';
+import 'package:internship_management_system/config.dart';
 
 Future<List<NotificationData>> getNotifications({http.Client? client}) async {
   final c = client ?? http.Client();
   final token = AuthState.token;
   final response = await c.get(
-    Uri.parse('$_baseUrl/notifications/'),
+    Uri.parse('$baseUrl/notifications/'),
     headers: {
       if (token != null) 'Authorization': 'Bearer $token',
     },
@@ -33,7 +32,7 @@ Future<int> getUnreadCount({http.Client? client}) async {
   final c = client ?? http.Client();
   final token = AuthState.token;
   final response = await c.get(
-    Uri.parse('$_baseUrl/notifications/unread-count'),
+    Uri.parse('$baseUrl/notifications/unread-count'),
     headers: {
       if (token != null) 'Authorization': 'Bearer $token',
     },
@@ -55,7 +54,7 @@ Future<void> markAsRead(int notificationId, {http.Client? client}) async {
   final c = client ?? http.Client();
   final token = AuthState.token;
   final response = await c.patch(
-    Uri.parse('$_baseUrl/notifications/$notificationId/read'),
+    Uri.parse('$baseUrl/notifications/$notificationId/read'),
     headers: {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',

@@ -3,13 +3,12 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/models/student.dart';
-
-const _baseUrl = 'http://localhost:8000';
+import 'package:internship_management_system/config.dart';
 
 Future<Student> getStudent(String userId) async {
   final token = AuthState.token;
   final response = await http.get(
-    Uri.parse('$_baseUrl/student?user_id=$userId'),
+    Uri.parse('$baseUrl/student?user_id=$userId'),
     headers: {if (token != null) 'Authorization': 'Bearer $token'},
   );
 
@@ -30,7 +29,7 @@ Future<Student> getStudent(String userId) async {
 Future<String?> getMyAcceptedCompany() async {
   final token = AuthState.token;
   final response = await http.get(
-    Uri.parse('$_baseUrl/student/accepted-company'),
+    Uri.parse('$baseUrl/student/accepted-company'),
     headers: {if (token != null) 'Authorization': 'Bearer $token'},
   );
 
@@ -47,7 +46,7 @@ Future<String?> getMyAcceptedCompany() async {
 Future<String?> getAcceptedCompany(String studentId) async {
   final token = AuthState.token;
   final response = await http.get(
-    Uri.parse('$_baseUrl/students/$studentId/accepted-company'),
+    Uri.parse('$baseUrl/students/$studentId/accepted-company'),
     headers: {if (token != null) 'Authorization': 'Bearer $token'},
   );
 
@@ -68,7 +67,7 @@ Future<void> updateInternshipDetails({
   final token = AuthState.token;
   final request = http.MultipartRequest(
     'PATCH',
-    Uri.parse('$_baseUrl/student/internship-details'),
+    Uri.parse('$baseUrl/student/internship-details'),
   );
   request.headers.addAll({
     if (token != null) 'Authorization': 'Bearer $token',
@@ -95,7 +94,7 @@ Future<void> submitSupervisorDetails({
   final token = AuthState.token;
   final request = http.MultipartRequest(
     'PATCH',
-    Uri.parse('$_baseUrl/student/supervisor-details'),
+    Uri.parse('$baseUrl/student/supervisor-details'),
   );
   request.headers.addAll({
     if (token != null) 'Authorization': 'Bearer $token',
@@ -119,7 +118,7 @@ Future<List<Student>> getMentorStudents({http.Client? client}) async {
   final token = AuthState.token;
   final c = client ?? http.Client();
   final response = await c.get(
-    Uri.parse('$_baseUrl/students'),
+    Uri.parse('$baseUrl/students'),
     headers: {if (token != null) 'Authorization': 'Bearer $token'},
   );
 

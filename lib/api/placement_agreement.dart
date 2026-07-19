@@ -5,15 +5,14 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/models/placement_agreement.dart';
-
-const _baseUrl = 'http://localhost:8000';
+import 'package:internship_management_system/config.dart';
 
 Future<Map<String, dynamic>> uploadPlacementAgreement({
   required List<int> fileBytes,
   required String fileName,
 }) async {
   final token = AuthState.token;
-  final uri = Uri.parse('$_baseUrl/placement-agreement/upload');
+  final uri = Uri.parse('$baseUrl/placement-agreement/upload');
   final request = http.MultipartRequest('POST', uri);
 
   if (token != null) {
@@ -42,7 +41,7 @@ Future<Map<String, dynamic>> uploadPlacementAgreement({
 Future<PlacementAgreementData?> getPlacementAgreementByStudent(String studentId) async {
   final token = AuthState.token;
   final response = await http.get(
-    Uri.parse('$_baseUrl/placement-agreement/student/$studentId'),
+    Uri.parse('$baseUrl/placement-agreement/student/$studentId'),
     headers: {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
@@ -63,7 +62,7 @@ Future<PlacementAgreementData?> getPlacementAgreementByStudent(String studentId)
 Future<Uint8List> downloadPlacementAgreement(int placementAgreementId) async {
   final token = AuthState.token;
   final response = await http.get(
-    Uri.parse('$_baseUrl/placement-agreement/download/$placementAgreementId'),
+    Uri.parse('$baseUrl/placement-agreement/download/$placementAgreementId'),
     headers: {
       if (token != null) 'Authorization': 'Bearer $token',
     },
@@ -86,7 +85,7 @@ Future<Uint8List> downloadPlacementAgreement(int placementAgreementId) async {
 Future<List<Map<String, dynamic>>> getPendingPlacementAgreements() async {
   final token = AuthState.token;
   final response = await http.get(
-    Uri.parse('$_baseUrl/placement-agreement/pending'),
+    Uri.parse('$baseUrl/placement-agreement/pending'),
     headers: {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
@@ -107,7 +106,7 @@ Future<List<Map<String, dynamic>>> getPendingPlacementAgreements() async {
 Future<void> approvePlacementAgreement(int placementAgreementId) async {
   final token = AuthState.token;
   final response = await http.patch(
-    Uri.parse('$_baseUrl/placement-agreement/$placementAgreementId/approve'),
+    Uri.parse('$baseUrl/placement-agreement/$placementAgreementId/approve'),
     headers: {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',

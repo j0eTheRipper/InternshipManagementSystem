@@ -5,8 +5,7 @@ import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/models/company_supervisor.dart';
 import 'package:internship_management_system/models/student.dart';
 import 'package:internship_management_system/models/user.dart';
-
-const _baseUrl = 'http://localhost:8000';
+import 'package:internship_management_system/config.dart';
 
 Map<String, String> _headers() {
   final token = AuthState.token;
@@ -30,7 +29,7 @@ Future<void> createStudent({
 }) async {
   final c = client ?? http.Client();
   final response = await c.post(
-    Uri.parse('$_baseUrl/admin/students'),
+    Uri.parse('$baseUrl/admin/students'),
     headers: _headers(),
     body: jsonEncode({
       'fullname': fullname,
@@ -56,7 +55,7 @@ Future<void> createStudent({
 Future<List<Student>> getAllStudents({http.Client? client}) async {
   final c = client ?? http.Client();
   final response = await c.get(
-    Uri.parse('$_baseUrl/admin/students'),
+    Uri.parse('$baseUrl/admin/students'),
     headers: _headers(),
   );
 
@@ -76,7 +75,7 @@ Future<List<Student>> getAllStudents({http.Client? client}) async {
 Future<Student> getStudentById(String studentId, {http.Client? client}) async {
   final c = client ?? http.Client();
   final response = await c.get(
-    Uri.parse('$_baseUrl/admin/students/$studentId'),
+    Uri.parse('$baseUrl/admin/students/$studentId'),
     headers: _headers(),
   );
 
@@ -95,7 +94,7 @@ Future<Student> getStudentById(String studentId, {http.Client? client}) async {
 Future<void> updateStudentProgress(String studentId, String progress, {http.Client? client}) async {
   final c = client ?? http.Client();
   final response = await c.patch(
-    Uri.parse('$_baseUrl/admin/students/$studentId/progress'),
+    Uri.parse('$baseUrl/admin/students/$studentId/progress'),
     headers: _headers(),
     body: jsonEncode({'progress': progress}),
   );
@@ -113,7 +112,7 @@ Future<void> updateStudentProgress(String studentId, String progress, {http.Clie
 Future<void> updateStudentMentor(String studentId, int mentorId, {http.Client? client}) async {
   final c = client ?? http.Client();
   final response = await c.patch(
-    Uri.parse('$_baseUrl/admin/students/$studentId/mentor'),
+    Uri.parse('$baseUrl/admin/students/$studentId/mentor'),
     headers: _headers(),
     body: jsonEncode({'mentor_id': mentorId}),
   );
@@ -138,7 +137,7 @@ Future<void> createMentor({
 }) async {
   final c = client ?? http.Client();
   final response = await c.post(
-    Uri.parse('$_baseUrl/admin/mentors'),
+    Uri.parse('$baseUrl/admin/mentors'),
     headers: _headers(),
     body: jsonEncode({
       'fullname': fullname,
@@ -160,7 +159,7 @@ Future<void> createMentor({
 Future<List<User>> getAllMentors({http.Client? client}) async {
   final c = client ?? http.Client();
   final response = await c.get(
-    Uri.parse('$_baseUrl/admin/mentors'),
+    Uri.parse('$baseUrl/admin/mentors'),
     headers: _headers(),
   );
 
@@ -182,7 +181,7 @@ Future<List<User>> getAllMentors({http.Client? client}) async {
 Future<void> addAttendance(String studentId, String date, {http.Client? client}) async {
   final c = client ?? http.Client();
   final response = await c.post(
-    Uri.parse('$_baseUrl/admin/attendance'),
+    Uri.parse('$baseUrl/admin/attendance'),
     headers: _headers(),
     body: jsonEncode({'student_id': studentId, 'date': date}),
   );
@@ -200,7 +199,7 @@ Future<void> addAttendance(String studentId, String date, {http.Client? client})
 Future<void> deleteAttendance(int attendanceId, {http.Client? client}) async {
   final c = client ?? http.Client();
   final response = await c.delete(
-    Uri.parse('$_baseUrl/admin/attendance/$attendanceId'),
+    Uri.parse('$baseUrl/admin/attendance/$attendanceId'),
     headers: _headers(),
   );
 
@@ -217,7 +216,7 @@ Future<void> deleteAttendance(int attendanceId, {http.Client? client}) async {
 Future<List<Map<String, dynamic>>> getStudentAttendance(String studentId, {http.Client? client}) async {
   final c = client ?? http.Client();
   final response = await c.get(
-    Uri.parse('$_baseUrl/admin/attendance/$studentId'),
+    Uri.parse('$baseUrl/admin/attendance/$studentId'),
     headers: _headers(),
   );
 
@@ -239,7 +238,7 @@ Future<List<Map<String, dynamic>>> getStudentAttendance(String studentId, {http.
 Future<List<CompanySupervisor>> getAllCompanySupervisors({http.Client? client}) async {
   final c = client ?? http.Client();
   final response = await c.get(
-    Uri.parse('$_baseUrl/admin/company-supervisors'),
+    Uri.parse('$baseUrl/admin/company-supervisors'),
     headers: _headers(),
   );
 
@@ -259,7 +258,7 @@ Future<List<CompanySupervisor>> getAllCompanySupervisors({http.Client? client}) 
 Future<void> updateStudentCompanySupervisor(String studentId, int? companySupervisorId, {http.Client? client}) async {
   final c = client ?? http.Client();
   final response = await c.patch(
-    Uri.parse('$_baseUrl/admin/students/$studentId/company-supervisor'),
+    Uri.parse('$baseUrl/admin/students/$studentId/company-supervisor'),
     headers: _headers(),
     body: jsonEncode({'company_supervisor_id': companySupervisorId ?? 0}),
   );

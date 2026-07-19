@@ -4,8 +4,7 @@ import 'package:internship_management_system/models/company_supervisor.dart';
 import 'package:internship_management_system/models/headhunter.dart';
 import 'package:internship_management_system/models/student.dart';
 import 'package:internship_management_system/models/user.dart';
-
-const _baseUrl = 'http://localhost:8000';
+import 'package:internship_management_system/config.dart';
 
 class LoginResult {
   final dynamic user;
@@ -16,7 +15,7 @@ class LoginResult {
 
 Future<LoginResult> login(String email, String password) async {
   final response = await http.post(
-    Uri.parse('$_baseUrl/login'),
+    Uri.parse('$baseUrl/login'),
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({'email': email, 'password': password}),
   );

@@ -3,8 +3,7 @@ import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 import 'package:internship_management_system/auth/auth_state.dart';
-
-const _baseUrl = 'http://localhost:8000';
+import 'package:internship_management_system/config.dart';
 
 Future<Map<String, dynamic>> uploadOfferLetter({
   required int applicationId,
@@ -12,7 +11,7 @@ Future<Map<String, dynamic>> uploadOfferLetter({
   required String fileName,
 }) async {
   final token = AuthState.token;
-  final uri = Uri.parse('$_baseUrl/offer-letter/upload');
+  final uri = Uri.parse('$baseUrl/offer-letter/upload');
   final request = http.MultipartRequest('POST', uri);
 
   if (token != null) {
@@ -41,7 +40,7 @@ Future<Map<String, dynamic>> uploadOfferLetter({
 Future<Map<String, dynamic>> getOfferLetterByApplication(int applicationId) async {
   final token = AuthState.token;
   final response = await http.get(
-    Uri.parse('$_baseUrl/offer-letter/by-application/$applicationId'),
+    Uri.parse('$baseUrl/offer-letter/by-application/$applicationId'),
     headers: {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
@@ -62,7 +61,7 @@ Future<Map<String, dynamic>> getOfferLetterByApplication(int applicationId) asyn
 
 Future<List<dynamic>> getStudentOfferLetters(String studentId) async {
   final response = await http.get(
-    Uri.parse('$_baseUrl/offer-letter/student/$studentId'),
+    Uri.parse('$baseUrl/offer-letter/student/$studentId'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${AuthState.token}',
@@ -81,7 +80,7 @@ Future<List<dynamic>> getStudentOfferLetters(String studentId) async {
 
 Future<List<dynamic>> getMentorOfferLetters() async {
   final response = await http.get(
-    Uri.parse('$_baseUrl/offer-letter/all'),
+    Uri.parse('$baseUrl/offer-letter/all'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${AuthState.token}',
@@ -101,7 +100,7 @@ Future<List<dynamic>> getMentorOfferLetters() async {
 Future<List<dynamic>> getPendingOfferLetters() async {
   final token = AuthState.token;
   final response = await http.get(
-    Uri.parse('$_baseUrl/offer-letter/pending'),
+    Uri.parse('$baseUrl/offer-letter/pending'),
     headers: {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
@@ -121,7 +120,7 @@ Future<List<dynamic>> getPendingOfferLetters() async {
 Future<Uint8List> downloadOfferLetter(int offerLetterId) async {
   final token = AuthState.token;
   final response = await http.get(
-    Uri.parse('$_baseUrl/offer-letter/download/$offerLetterId'),
+    Uri.parse('$baseUrl/offer-letter/download/$offerLetterId'),
     headers: {
       if (token != null) 'Authorization': 'Bearer $token',
     },
@@ -144,7 +143,7 @@ Future<Uint8List> downloadOfferLetter(int offerLetterId) async {
 Future<void> approveOfferLetter(int offerLetterId) async {
   final token = AuthState.token;
   final response = await http.patch(
-    Uri.parse('$_baseUrl/offer-letter/$offerLetterId/approve'),
+    Uri.parse('$baseUrl/offer-letter/$offerLetterId/approve'),
     headers: {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
@@ -162,7 +161,7 @@ Future<void> approveOfferLetter(int offerLetterId) async {
 Future<void> rejectOfferLetter(int offerLetterId) async {
   final token = AuthState.token;
   final response = await http.patch(
-    Uri.parse('$_baseUrl/offer-letter/$offerLetterId/reject'),
+    Uri.parse('$baseUrl/offer-letter/$offerLetterId/reject'),
     headers: {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',

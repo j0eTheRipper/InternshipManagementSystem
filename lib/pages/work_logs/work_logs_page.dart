@@ -139,11 +139,14 @@ class _WorkLogsPageState extends State<WorkLogsPage> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      '$startDisplay – $endDisplay',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: const Color(0xFF757575),
+                    Flexible(
+                      child: Text(
+                        '$startDisplay – $endDisplay',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: const Color(0xFF757575),
+                        ),
                       ),
                     ),
                     const Spacer(),

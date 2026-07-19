@@ -2,8 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/models/headhunter.dart';
-
-const _baseUrl = 'http://localhost:8000';
+import 'package:internship_management_system/config.dart';
 
 class RegisterResult {
   final Headhunter headhunter;
@@ -20,7 +19,7 @@ Future<RegisterResult> registerHeadhunter({
   String companyEmail = '',
 }) async {
   final response = await http.post(
-    Uri.parse('$_baseUrl/register/headhunter'),
+    Uri.parse('$baseUrl/register/headhunter'),
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({
       'fullname': fullname,
@@ -45,7 +44,7 @@ Future<RegisterResult> registerHeadhunter({
 
 Future<Headhunter> getHeadhunterProfile() async {
   final response = await http.get(
-    Uri.parse('$_baseUrl/headhunter/profile'),
+    Uri.parse('$baseUrl/headhunter/profile'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${AuthState.token}',

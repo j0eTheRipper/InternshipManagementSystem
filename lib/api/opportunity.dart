@@ -2,12 +2,11 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/models/opportunity.dart';
-
-const _baseUrl = 'http://localhost:8000';
+import 'package:internship_management_system/config.dart';
 
 Future<List<Opportunity>> getOpportunities() async {
   final response = await http.get(
-    Uri.parse('$_baseUrl/opportunities'),
+    Uri.parse('$baseUrl/opportunities'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${AuthState.token}',
@@ -27,7 +26,7 @@ Future<List<Opportunity>> getOpportunities() async {
 
 Future<Opportunity> getOpportunity(int id) async {
   final response = await http.get(
-    Uri.parse('$_baseUrl/opportunities/$id'),
+    Uri.parse('$baseUrl/opportunities/$id'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${AuthState.token}',
@@ -46,7 +45,7 @@ Future<Opportunity> getOpportunity(int id) async {
 
 Future<List<Opportunity>> getMyOpportunities() async {
   final response = await http.get(
-    Uri.parse('$_baseUrl/opportunities/my'),
+    Uri.parse('$baseUrl/opportunities/my'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${AuthState.token}',
@@ -72,7 +71,7 @@ Future<Opportunity> createOpportunity({
   String status = 'remote',
 }) async {
   final response = await http.post(
-    Uri.parse('$_baseUrl/opportunities'),
+    Uri.parse('$baseUrl/opportunities'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${AuthState.token}',
@@ -104,7 +103,7 @@ Future<void> updateOpportunity(int id, {
   required String status,
 }) async {
   final response = await http.patch(
-    Uri.parse('$_baseUrl/opportunities/$id'),
+    Uri.parse('$baseUrl/opportunities/$id'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${AuthState.token}',
@@ -128,7 +127,7 @@ Future<void> updateOpportunity(int id, {
 
 Future<void> deleteOpportunity(int id) async {
   final response = await http.delete(
-    Uri.parse('$_baseUrl/opportunities/$id'),
+    Uri.parse('$baseUrl/opportunities/$id'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${AuthState.token}',

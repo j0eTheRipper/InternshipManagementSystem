@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/pages/dashboard/dashboard_layout.dart';
@@ -184,6 +185,7 @@ final _router = GoRouter(
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load();
   await AuthState.init();
   AuthState.router = _router;
   runApp(const MyApp());

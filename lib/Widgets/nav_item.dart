@@ -5,12 +5,14 @@ class NavItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final String route;
+  final VoidCallback? onAfterNavigate;
 
   const NavItem({
     super.key,
     required this.icon,
     required this.label,
     required this.route,
+    this.onAfterNavigate,
   });
 
   @override
@@ -24,7 +26,10 @@ class NavItem extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(8),
-          onTap: () => context.go(route),
+          onTap: () {
+            context.go(route);
+            onAfterNavigate?.call();
+          },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(

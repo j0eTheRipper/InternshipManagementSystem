@@ -4,12 +4,11 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/models/application.dart';
-
-const _baseUrl = 'http://localhost:8000';
+import 'package:internship_management_system/config.dart';
 
 Future<Application> apply({required int opportunityId, required int resumeId}) async {
   final response = await http.post(
-    Uri.parse('$_baseUrl/applications'),
+    Uri.parse('$baseUrl/applications'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${AuthState.token}',
@@ -40,7 +39,7 @@ Future<Application> createExternalApplication({
   required String screenshotFileName,
 }) async {
   final token = AuthState.token;
-  final uri = Uri.parse('$_baseUrl/applications/external');
+  final uri = Uri.parse('$baseUrl/applications/external');
   final request = http.MultipartRequest('POST', uri);
 
   if (token != null) {
@@ -73,7 +72,7 @@ Future<Application> createExternalApplication({
 
 Future<List<Application>> getMyApplications() async {
   final response = await http.get(
-    Uri.parse('$_baseUrl/applications/my'),
+    Uri.parse('$baseUrl/applications/my'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${AuthState.token}',
@@ -93,7 +92,7 @@ Future<List<Application>> getMyApplications() async {
 
 Future<Application> getApplication(int applicationId) async {
   final response = await http.get(
-    Uri.parse('$_baseUrl/applications/$applicationId'),
+    Uri.parse('$baseUrl/applications/$applicationId'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${AuthState.token}',
@@ -113,7 +112,7 @@ Future<Application> getApplication(int applicationId) async {
 Future<Uint8List> downloadScreenshot(int applicationId) async {
   final token = AuthState.token;
   final response = await http.get(
-    Uri.parse('$_baseUrl/applications/$applicationId/screenshot'),
+    Uri.parse('$baseUrl/applications/$applicationId/screenshot'),
     headers: {
       if (token != null) 'Authorization': 'Bearer $token',
     },
@@ -135,7 +134,7 @@ Future<Uint8List> downloadScreenshot(int applicationId) async {
 
 Future<List<Application>> getApplicants(int opportunityId) async {
   final response = await http.get(
-    Uri.parse('$_baseUrl/applications/opportunity/$opportunityId'),
+    Uri.parse('$baseUrl/applications/opportunity/$opportunityId'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${AuthState.token}',
@@ -155,7 +154,7 @@ Future<List<Application>> getApplicants(int opportunityId) async {
 
 Future<void> updateApplicationStatus(int applicationId, String status) async {
   final response = await http.patch(
-    Uri.parse('$_baseUrl/applications/$applicationId/status'),
+    Uri.parse('$baseUrl/applications/$applicationId/status'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${AuthState.token}',
@@ -173,7 +172,7 @@ Future<void> updateApplicationStatus(int applicationId, String status) async {
 
 Future<void> acceptApplication(int applicationId) async {
   final response = await http.patch(
-    Uri.parse('$_baseUrl/applications/$applicationId/accept'),
+    Uri.parse('$baseUrl/applications/$applicationId/accept'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${AuthState.token}',

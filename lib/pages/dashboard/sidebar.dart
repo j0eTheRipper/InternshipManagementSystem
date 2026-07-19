@@ -7,7 +7,9 @@ import 'package:internship_management_system/notifications/notification_service.
 import 'package:internship_management_system/Widgets/nav_item.dart';
 
 class Sidebar extends StatefulWidget {
-  const Sidebar({super.key});
+  final bool isInDrawer;
+
+  const Sidebar({super.key, this.isInDrawer = false});
 
   @override
   State<Sidebar> createState() => _SidebarState();
@@ -34,6 +36,9 @@ class _SidebarState extends State<Sidebar> {
       setState(() => _unreadCount = NotificationService.instance.unreadCount);
     }
   }
+
+  VoidCallback? get _closeDrawer =>
+      widget.isInDrawer ? () => Navigator.pop(context) : null;
 
   @override
   void dispose() {
@@ -115,12 +120,14 @@ class _SidebarState extends State<Sidebar> {
                     icon: Icons.dashboard_rounded,
                     label: 'Dashboard',
                     route: '/dashboard',
+                    onAfterNavigate: _closeDrawer,
                   ),
                 if (isStudent && !isInterning && !isPendingDocs) ...[
                   NavItem(
                     icon: Icons.business_rounded,
                     label: 'Opportunities',
                     route: '/opportunities',
+                    onAfterNavigate: _closeDrawer,
                   ),
                 ],
                 if (isStudent && isInterning) ...[
@@ -128,11 +135,13 @@ class _SidebarState extends State<Sidebar> {
                     icon: Icons.event_available_outlined,
                     label: 'Attendance',
                     route: '/attendance',
+                    onAfterNavigate: _closeDrawer,
                   ),
                   NavItem(
                     icon: Icons.edit_note_rounded,
                     label: 'Work Logs',
                     route: '/work-logs',
+                    onAfterNavigate: _closeDrawer,
                   ),
                 ],
                 if (isStudent && !isInterning && !isPendingDocs) ...[
@@ -140,11 +149,13 @@ class _SidebarState extends State<Sidebar> {
                     icon: Icons.assignment_rounded,
                     label: 'My Applications',
                     route: '/my-applications',
+                    onAfterNavigate: _closeDrawer,
                   ),
                   NavItem(
                     icon: Icons.description_outlined,
                     label: 'Resume',
                     route: '/resume',
+                    onAfterNavigate: _closeDrawer,
                   ),
                 ],
                 if (isHeadhunter) ...[
@@ -152,6 +163,7 @@ class _SidebarState extends State<Sidebar> {
                     icon: Icons.post_add_rounded,
                     label: 'My Postings',
                     route: '/headhunter/postings',
+                    onAfterNavigate: _closeDrawer,
                   ),
                 ],
                 if (isAdmin) ...[
@@ -159,26 +171,31 @@ class _SidebarState extends State<Sidebar> {
                     icon: Icons.dashboard_rounded,
                     label: 'Dashboard',
                     route: '/admin/dashboard',
+                    onAfterNavigate: _closeDrawer,
                   ),
                   NavItem(
                     icon: Icons.people_outline,
                     label: 'Students',
                     route: '/admin/students',
+                    onAfterNavigate: _closeDrawer,
                   ),
                   NavItem(
                     icon: Icons.school_outlined,
                     label: 'Mentors',
                     route: '/admin/mentors',
+                    onAfterNavigate: _closeDrawer,
                   ),
                   NavItem(
                     icon: Icons.business_center_outlined,
                     label: 'Company Supervisors',
                     route: '/admin/company-supervisors',
+                    onAfterNavigate: _closeDrawer,
                   ),
                   NavItem(
                     icon: Icons.event_available_outlined,
                     label: 'Attendance',
                     route: '/admin/attendance',
+                    onAfterNavigate: _closeDrawer,
                   ),
                 ],
                 if (isCompanySupervisor) ...[
@@ -186,11 +203,13 @@ class _SidebarState extends State<Sidebar> {
                     icon: Icons.dashboard_rounded,
                     label: 'Dashboard',
                     route: '/company-supervisor/dashboard',
+                    onAfterNavigate: _closeDrawer,
                   ),
                   NavItem(
                     icon: Icons.people_outline,
                     label: 'My Students',
                     route: '/company-supervisor/students',
+                    onAfterNavigate: _closeDrawer,
                   ),
                 ],
                 if (!isStudent && !isHeadhunter && !isAdmin && !isCompanySupervisor) ...[
@@ -198,23 +217,30 @@ class _SidebarState extends State<Sidebar> {
                     icon: Icons.people_outline,
                     label: 'All Students',
                     route: '/mentor/all-students',
+                    onAfterNavigate: _closeDrawer,
                   ),
                   NavItem(
                     icon: Icons.folder_outlined,
                     label: 'Student Documents',
                     route: '/mentor/student-documents',
+                    onAfterNavigate: _closeDrawer,
                   ),
                   NavItem(
                     icon: Icons.pending_actions_outlined,
                     label: 'Pending Documents',
                     route: '/mentor/pending-documents',
+                    onAfterNavigate: _closeDrawer,
                   ),
                 ],
-                _NotificationNavItem(unreadCount: _unreadCount),
+                _NotificationNavItem(
+                  unreadCount: _unreadCount,
+                  onAfterNavigate: _closeDrawer,
+                ),
                 NavItem(
                   icon: Icons.person_rounded,
                   label: 'Profile',
                   route: '/profile',
+                  onAfterNavigate: _closeDrawer,
                 ),
               ],
             ),
@@ -249,8 +275,9 @@ class _SidebarState extends State<Sidebar> {
 
 class _NotificationNavItem extends StatelessWidget {
   final int unreadCount;
+  final VoidCallback? onAfterNavigate;
 
-  const _NotificationNavItem({required this.unreadCount});
+  const _NotificationNavItem({required this.unreadCount, this.onAfterNavigate});
 
   @override
   Widget build(BuildContext context) {
@@ -263,7 +290,10 @@ class _NotificationNavItem extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(8),
-          onTap: () => context.go('/notifications'),
+          onTap: () {
+            context.go('/notifications');
+            onAfterNavigate?.call();
+          },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(

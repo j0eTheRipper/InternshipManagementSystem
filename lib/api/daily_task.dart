@@ -2,8 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:internship_management_system/auth/auth_state.dart';
-
-const _baseUrl = 'http://localhost:8000';
+import 'package:internship_management_system/config.dart';
 
 Future<Map<String, dynamic>> submitDailyTask({
   required String updateText,
@@ -13,7 +12,7 @@ Future<Map<String, dynamic>> submitDailyTask({
   final token = AuthState.token;
   final request = http.MultipartRequest(
     'POST',
-    Uri.parse('$_baseUrl/daily-task'),
+    Uri.parse('$baseUrl/daily-task'),
   );
   request.headers.addAll({
     if (token != null) 'Authorization': 'Bearer $token',
@@ -41,7 +40,7 @@ Future<Map<String, dynamic>?> getTodayTask({
   final c = client ?? http.Client();
   final token = AuthState.token;
   final response = await c.get(
-    Uri.parse('$_baseUrl/daily-task/today'),
+    Uri.parse('$baseUrl/daily-task/today'),
     headers: {
       if (token != null) 'Authorization': 'Bearer $token',
     },
@@ -67,7 +66,7 @@ Future<List<dynamic>> getDailyTaskHistory({
   final c = client ?? http.Client();
   final token = AuthState.token;
   final response = await c.get(
-    Uri.parse('$_baseUrl/daily-task/history'),
+    Uri.parse('$baseUrl/daily-task/history'),
     headers: {
       if (token != null) 'Authorization': 'Bearer $token',
     },

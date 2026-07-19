@@ -5,8 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/models/resume.dart';
-
-const _baseUrl = 'http://localhost:8000';
+import 'package:internship_management_system/config.dart';
 
 Future<Map<String, dynamic>> uploadResume(
   List<int> fileBytes, {
@@ -15,7 +14,7 @@ Future<Map<String, dynamic>> uploadResume(
 }) async {
   final c = client ?? http.Client();
   final token = AuthState.token;
-  final uri = Uri.parse('$_baseUrl/resume/upload');
+  final uri = Uri.parse('$baseUrl/resume/upload');
   final request = http.MultipartRequest('POST', uri);
 
   if (token != null) {
@@ -49,7 +48,7 @@ Future<Map<String, dynamic>> uploadResume(
 Future<List<ResumeData>> getResume({String? studentId, http.Client? client}) async {
   final c = client ?? http.Client();
   final token = AuthState.token;
-  final uri = Uri.parse('$_baseUrl/resume/').replace(
+  final uri = Uri.parse('$baseUrl/resume/').replace(
     queryParameters: studentId != null ? {'request_student_id': studentId} : null,
   );
 
@@ -81,7 +80,7 @@ Future<Uint8List> downloadResume(int resumeId, {http.Client? client}) async {
   final c = client ?? http.Client();
   final token = AuthState.token;
   final response = await c.get(
-    Uri.parse('$_baseUrl/resume/download/$resumeId'),
+    Uri.parse('$baseUrl/resume/download/$resumeId'),
     headers: {
       if (token != null) 'Authorization': 'Bearer $token',
     },
@@ -107,7 +106,7 @@ Future<void> approveResume(int resumeId, {http.Client? client}) async {
   final c = client ?? http.Client();
   final token = AuthState.token;
   final response = await c.patch(
-    Uri.parse('$_baseUrl/resume/$resumeId/approve'),
+    Uri.parse('$baseUrl/resume/$resumeId/approve'),
     headers: {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',

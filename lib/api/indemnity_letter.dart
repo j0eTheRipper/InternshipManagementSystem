@@ -5,15 +5,14 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/models/indemnity_letter.dart';
-
-const _baseUrl = 'http://localhost:8000';
+import 'package:internship_management_system/config.dart';
 
 Future<Map<String, dynamic>> uploadIndemnityLetter({
   required List<int> fileBytes,
   required String fileName,
 }) async {
   final token = AuthState.token;
-  final uri = Uri.parse('$_baseUrl/indemnity-letter/upload');
+  final uri = Uri.parse('$baseUrl/indemnity-letter/upload');
   final request = http.MultipartRequest('POST', uri);
 
   if (token != null) {
@@ -42,7 +41,7 @@ Future<Map<String, dynamic>> uploadIndemnityLetter({
 Future<IndemnityLetterData?> getIndemnityLetterByStudent(String studentId) async {
   final token = AuthState.token;
   final response = await http.get(
-    Uri.parse('$_baseUrl/indemnity-letter/student/$studentId'),
+    Uri.parse('$baseUrl/indemnity-letter/student/$studentId'),
     headers: {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
@@ -63,7 +62,7 @@ Future<IndemnityLetterData?> getIndemnityLetterByStudent(String studentId) async
 Future<Uint8List> downloadIndemnityLetter(int indemnityLetterId) async {
   final token = AuthState.token;
   final response = await http.get(
-    Uri.parse('$_baseUrl/indemnity-letter/download/$indemnityLetterId'),
+    Uri.parse('$baseUrl/indemnity-letter/download/$indemnityLetterId'),
     headers: {
       if (token != null) 'Authorization': 'Bearer $token',
     },
@@ -86,7 +85,7 @@ Future<Uint8List> downloadIndemnityLetter(int indemnityLetterId) async {
 Future<List<Map<String, dynamic>>> getPendingIndemnityLetters() async {
   final token = AuthState.token;
   final response = await http.get(
-    Uri.parse('$_baseUrl/indemnity-letter/pending'),
+    Uri.parse('$baseUrl/indemnity-letter/pending'),
     headers: {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
@@ -107,7 +106,7 @@ Future<List<Map<String, dynamic>>> getPendingIndemnityLetters() async {
 Future<void> approveIndemnityLetter(int indemnityLetterId) async {
   final token = AuthState.token;
   final response = await http.patch(
-    Uri.parse('$_baseUrl/indemnity-letter/$indemnityLetterId/approve'),
+    Uri.parse('$baseUrl/indemnity-letter/$indemnityLetterId/approve'),
     headers: {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',

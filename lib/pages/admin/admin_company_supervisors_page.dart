@@ -3,8 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:internship_management_system/auth/auth_state.dart';
-
-const _baseUrl = 'http://localhost:8000';
+import 'package:internship_management_system/config.dart';
 
 class AdminCompanySupervisorsPage extends StatefulWidget {
   const AdminCompanySupervisorsPage({super.key});
@@ -28,7 +27,7 @@ class _AdminCompanySupervisorsPageState extends State<AdminCompanySupervisorsPag
     try {
       final token = AuthState.token;
       final response = await http.get(
-        Uri.parse('$_baseUrl/admin/company-supervisors'),
+        Uri.parse('$baseUrl/admin/company-supervisors'),
         headers: {if (token != null) 'Authorization': 'Bearer $token'},
       );
       AuthState.requireAuth(response);
@@ -65,7 +64,7 @@ class _AdminCompanySupervisorsPageState extends State<AdminCompanySupervisorsPag
     try {
       final token = AuthState.token;
       final response = await http.delete(
-        Uri.parse('$_baseUrl/admin/company-supervisors/$userId'),
+        Uri.parse('$baseUrl/admin/company-supervisors/$userId'),
         headers: {if (token != null) 'Authorization': 'Bearer $token'},
       );
       AuthState.requireAuth(response);
@@ -138,7 +137,7 @@ class _AdminCompanySupervisorsPageState extends State<AdminCompanySupervisorsPag
     try {
       final token = AuthState.token;
       final response = await http.post(
-        Uri.parse('$_baseUrl/admin/company-supervisors'),
+        Uri.parse('$baseUrl/admin/company-supervisors'),
         headers: {
           if (token != null) 'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

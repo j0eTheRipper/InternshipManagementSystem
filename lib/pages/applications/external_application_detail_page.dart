@@ -242,9 +242,12 @@ class _ExternalApplicationDetailPageState extends State<ExternalApplicationDetai
               ),
             ),
             const SizedBox(width: 8),
-            Text(
-              app.companyLocation ?? '',
-              style: const TextStyle(fontSize: 14, color: Color(0xFF9E9E9E)),
+            Flexible(
+              child: Text(
+                app.companyLocation ?? '',
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 14, color: Color(0xFF9E9E9E)),
+              ),
             ),
           ],
         ),
