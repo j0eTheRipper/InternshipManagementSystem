@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:go_router/go_router.dart';
 import 'package:internship_management_system/api/indemnity_letter.dart';
 import 'package:internship_management_system/api/placement_agreement.dart';
 import 'package:internship_management_system/api/student.dart';
@@ -17,6 +20,7 @@ class PendingDocumentsPage extends StatefulWidget {
 class _PendingDocumentsPageState extends State<PendingDocumentsPage> {
   bool _loading = true;
   int _currentStep = 0;
+  Timer? _pollTimer;
 
   DateTime? _startDate;
   int _durationWeeks = 12;
@@ -37,14 +41,29 @@ class _PendingDocumentsPageState extends State<PendingDocumentsPage> {
   void initState() {
     super.initState();
     _loadData();
+    _pollTimer = Timer.periodic(const Duration(seconds: 10), (_) => _pollState());
   }
 
   @override
   void dispose() {
+    _pollTimer?.cancel();
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pollState() async {
+    final userId = AuthState.currentUser?.userId;
+    if (userId == null) return;
+    try {
+      final updated = await getStudent(userId.toString());
+      final previousProgress = AuthState.currentStudent?.progress;
+      await AuthState.updateStudentData(updated);
+      if (updated.progress != previousProgress && mounted) {
+        context.go('/dashboard');
+      }
+    } catch (_) {}
   }
 
   Future<void> _loadData() async {

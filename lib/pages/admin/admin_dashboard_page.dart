@@ -16,6 +16,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   int _studentCount = 0;
   int _mentorCount = 0;
   int _acceptedCount = 0;
+  int _pendingSupervisorCount = 0;
   bool _loading = true;
 
   @override
@@ -29,10 +30,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       final results = await Future.wait([
         getAllStudents(),
         getAllMentors(),
+        getPendingSupervisors(),
       ]);
 
       final students = results[0] as List<Student>;
       final mentors = results[1] as List<User>;
+      final pendingSupervisors = results[2] as List<Map<String, dynamic>>;
       final accepted = students.where((s) => s.progress == 'accepted').length;
 
       if (mounted) {
@@ -40,6 +43,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           _studentCount = students.length;
           _mentorCount = mentors.length;
           _acceptedCount = accepted;
+          _pendingSupervisorCount = pendingSupervisors.length;
           _loading = false;
         });
       }
@@ -149,6 +153,58 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 ),
               ],
             ),
+            if (_pendingSupervisorCount > 0) ...[
+              const SizedBox(height: 24),
+              Material(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () => context.go('/admin/company-supervisors'),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE65100).withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFFFF3E0),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.person_add_outlined, size: 20, color: Color(0xFFE65100)),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '$_pendingSupervisorCount pending supervisor${_pendingSupervisorCount == 1 ? '' : 's'}',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF1A1A1A),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              const Text(
+                                'Students have submitted supervisor details that need accounts',
+                                style: TextStyle(fontSize: 13, color: Color(0xFF757575)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right, size: 22, color: Color(0xFFE65100)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

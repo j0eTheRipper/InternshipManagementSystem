@@ -5,6 +5,8 @@ import 'package:internship_management_system/api/chat.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/models/message.dart';
 import 'package:internship_management_system/services/chat_service.dart';
+import 'package:internship_management_system/notifications/chat_notification_service.dart';
+import 'package:internship_management_system/notifications/notification_service.dart';
 import 'package:internship_management_system/pages/chat/widgets/message_bubble.dart';
 import 'package:internship_management_system/pages/chat/widgets/typing_indicator.dart';
 
@@ -67,6 +69,8 @@ class _ConversationPageState extends State<ConversationPage> {
         });
         WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
         markConversationRead(widget.conversationId);
+        ChatNotificationService.instance.fetchUnread();
+        NotificationService.instance.fetchUnread();
       }
     } catch (e) {
       if (mounted) setState(() => _loading = false);

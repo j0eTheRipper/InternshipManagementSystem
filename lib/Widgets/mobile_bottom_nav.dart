@@ -1,9 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
+import 'package:internship_management_system/notifications/chat_notification_service.dart';
 
-class MobileBottomNav extends StatelessWidget {
+class MobileBottomNav extends StatefulWidget {
   const MobileBottomNav({super.key});
+
+  @override
+  State<MobileBottomNav> createState() => _MobileBottomNavState();
+}
+
+class _MobileBottomNavState extends State<MobileBottomNav> {
+  int _chatUnreadCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _chatUnreadCount = ChatNotificationService.instance.unreadCount;
+    ChatNotificationService.instance.addListener(_onUnreadChanged);
+    ChatNotificationService.instance.fetchUnread();
+  }
+
+  void _onUnreadChanged() {
+    if (mounted) {
+      setState(() {
+        _chatUnreadCount = ChatNotificationService.instance.unreadCount;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    ChatNotificationService.instance.removeListener(_onUnreadChanged);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,12 +56,48 @@ class MobileBottomNav extends StatelessWidget {
       destinations: destinations
           .map(
             (d) => NavigationDestination(
-              icon: Icon(d.icon, size: 22),
-              selectedIcon: Icon(d.icon, size: 22, color: const Color(0xFF030213)),
+              icon: d.label == 'Chat' && _chatUnreadCount > 0
+                  ? _buildBadge(icon: Icon(d.icon, size: 22), count: _chatUnreadCount)
+                  : Icon(d.icon, size: 22),
+              selectedIcon: d.label == 'Chat' && _chatUnreadCount > 0
+                  ? _buildBadge(icon: Icon(d.icon, size: 22, color: const Color(0xFF030213)), count: _chatUnreadCount)
+                  : Icon(d.icon, size: 22, color: const Color(0xFF030213)),
               label: d.label,
             ),
           )
           .toList(),
+    );
+  }
+
+  Widget _buildBadge({required Widget icon, required int count}) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        icon,
+        Positioned(
+          right: -4,
+          top: -4,
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+            decoration: const BoxDecoration(
+              color: Color(0xFFE53935),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                count > 99 ? '99+' : '$count',
+                style: const TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  height: 1,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

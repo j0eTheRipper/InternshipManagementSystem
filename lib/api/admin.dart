@@ -152,7 +152,12 @@ Future<void> createMentor({
 
   if (response.statusCode != 200) {
     final json = jsonDecode(response.body);
-    throw Exception(json['detail'] ?? 'Failed to create mentor');
+    final detail = json['detail'];
+    if (detail is List) {
+      final msgs = detail.map((e) => e['msg'] ?? e.toString()).join('; ');
+      throw Exception(msgs);
+    }
+    throw Exception(detail?.toString() ?? 'Failed to create mentor');
   }
 }
 
@@ -271,4 +276,23 @@ Future<void> updateStudentCompanySupervisor(String studentId, int? companySuperv
     final json = jsonDecode(response.body);
     throw Exception(json['detail'] ?? 'Failed to update company supervisor');
   }
+}
+
+Future<List<Map<String, dynamic>>> getPendingSupervisors({http.Client? client}) async {
+  final c = client ?? http.Client();
+  final response = await c.get(
+    Uri.parse('$baseUrl/admin/pending-supervisors'),
+    headers: _headers(),
+  );
+
+  if (client == null) c.close();
+
+  AuthState.requireAuth(response);
+
+  if (response.statusCode == 200) {
+    final list = jsonDecode(response.body) as List;
+    return list.cast<Map<String, dynamic>>();
+  }
+
+  return [];
 }

@@ -231,6 +231,15 @@ class _AdminMentorsPageState extends State<AdminMentorsPage> {
                           ? null
                           : () async {
                               if (!formKey.currentState!.validate()) return;
+                              if (passwordController.text.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Password is required'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                                return;
+                              }
                               setSheetState(() => submitting = true);
                               final messenger = ScaffoldMessenger.of(context);
                               final dialogNav = Navigator.of(ctx);

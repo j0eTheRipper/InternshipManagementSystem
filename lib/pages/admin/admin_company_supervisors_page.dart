@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:internship_management_system/api/admin.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/config.dart';
 
@@ -14,33 +15,46 @@ class AdminCompanySupervisorsPage extends StatefulWidget {
 
 class _AdminCompanySupervisorsPageState extends State<AdminCompanySupervisorsPage> {
   List<Map<String, dynamic>> _supervisors = [];
+  List<Map<String, dynamic>> _pendingSupervisors = [];
   bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchSupervisors();
+    _fetchData();
   }
 
-  Future<void> _fetchSupervisors() async {
+  Future<void> _fetchData() async {
     setState(() => _loading = true);
     try {
-      final token = AuthState.token;
-      final response = await http.get(
-        Uri.parse('$baseUrl/admin/company-supervisors'),
-        headers: {if (token != null) 'Authorization': 'Bearer $token'},
-      );
-      AuthState.requireAuth(response);
-      if (response.statusCode == 200) {
-        final list = jsonDecode(response.body) as List;
+      final results = await Future.wait([
+        _fetchSupervisorsRaw(),
+        getPendingSupervisors(),
+      ]);
+      if (mounted) {
         setState(() {
-          _supervisors = list.cast<Map<String, dynamic>>();
+          _supervisors = results[0] as List<Map<String, dynamic>>;
+          _pendingSupervisors = results[1] as List<Map<String, dynamic>>;
           _loading = false;
         });
       }
     } catch (_) {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchSupervisorsRaw() async {
+    final token = AuthState.token;
+    final response = await http.get(
+      Uri.parse('$baseUrl/admin/company-supervisors'),
+      headers: {if (token != null) 'Authorization': 'Bearer $token'},
+    );
+    AuthState.requireAuth(response);
+    if (response.statusCode == 200) {
+      final list = jsonDecode(response.body) as List;
+      return list.cast<Map<String, dynamic>>();
+    }
+    return [];
   }
 
   Future<void> _deleteSupervisor(int userId) async {
@@ -73,7 +87,7 @@ class _AdminCompanySupervisorsPageState extends State<AdminCompanySupervisorsPag
           const SnackBar(content: Text('Supervisor deleted')),
         );
       }
-      _fetchSupervisors();
+      _fetchData();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -86,9 +100,9 @@ class _AdminCompanySupervisorsPageState extends State<AdminCompanySupervisorsPag
     }
   }
 
-  Future<void> _showCreateDialog() async {
-    final nameController = TextEditingController();
-    final emailController = TextEditingController();
+  Future<void> _showCreateDialog({String? preName, String? preEmail}) async {
+    final nameController = TextEditingController(text: preName ?? '');
+    final emailController = TextEditingController(text: preEmail ?? '');
     final passwordController = TextEditingController();
     final companyIdController = TextEditingController(text: '1');
 
@@ -155,7 +169,7 @@ class _AdminCompanySupervisorsPageState extends State<AdminCompanySupervisorsPag
           const SnackBar(content: Text('Supervisor created')),
         );
       }
-      _fetchSupervisors();
+      _fetchData();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -203,7 +217,7 @@ class _AdminCompanySupervisorsPageState extends State<AdminCompanySupervisorsPag
                         ),
                       ),
                       FilledButton.icon(
-                        onPressed: _showCreateDialog,
+                        onPressed: () => _showCreateDialog(),
                         icon: const Icon(Icons.add, size: 18),
                         label: const Text('Add Supervisor'),
                         style: FilledButton.styleFrom(
@@ -213,9 +227,43 @@ class _AdminCompanySupervisorsPageState extends State<AdminCompanySupervisorsPag
                     ],
                   ),
                   const SizedBox(height: 24),
-                  if (_supervisors.isEmpty)
+                  if (_pendingSupervisors.isNotEmpty) ...[
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFFFF3E0),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.person_add_outlined, size: 18, color: Color(0xFFE65100)),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Pending Supervisors (${_pendingSupervisors.length})',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFFE65100),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Students have submitted these supervisor details but the accounts haven\'t been created yet.',
+                      style: TextStyle(fontSize: 13, color: Color(0xFF757575)),
+                    ),
+                    const SizedBox(height: 12),
+                    ...(_pendingSupervisors.map((p) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _buildPendingCard(p),
+                    ))),
+                    const SizedBox(height: 24),
+                  ],
+                  if (_supervisors.isEmpty && _pendingSupervisors.isEmpty)
                     _buildEmptyState()
-                  else
+                  else if (_supervisors.isNotEmpty)
                     Expanded(
                       child: ListView.separated(
                         itemCount: _supervisors.length,
@@ -252,6 +300,81 @@ class _AdminCompanySupervisorsPageState extends State<AdminCompanySupervisorsPag
             style: TextStyle(fontSize: 14, color: Color(0xFF9E9E9E)),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPendingCard(Map<String, dynamic> pending) {
+    final name = pending['name'] as String? ?? '';
+    final email = pending['email'] as String? ?? '';
+    final phone = pending['phone'] as String? ?? '';
+
+    final initials = name.split(' ').length >= 2
+        ? '${name.split(' ')[0][0]}${name.split(' ')[1][0]}'.toUpperCase()
+        : (name.isNotEmpty ? name[0].toUpperCase() : '?');
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => _showCreateDialog(preName: name, preEmail: email),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE65100).withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: const Color(0xFFFFF3E0),
+                child: Text(
+                  initials,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFFE65100)),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      email,
+                      style: const TextStyle(fontSize: 13, color: Color(0xFF757575)),
+                    ),
+                    if (phone.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        phone,
+                        style: const TextStyle(fontSize: 13, color: Color(0xFF9E9E9E)),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF3E0),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text(
+                  'Create Account',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFE65100)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(Icons.chevron_right, size: 20, color: Color(0xFFE65100)),
+            ],
+          ),
+        ),
       ),
     );
   }
