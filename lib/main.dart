@@ -115,15 +115,15 @@ final _router = GoRouter(
         ),
         GoRoute(path: '/chat', builder: (context, state) => const ChatPage()),
         GoRoute(
-          path: '/chat',
-          builder: (context, state) => const ChatPage(),
-        ),
-        GoRoute(
           path: '/chat/:conversationId',
           builder: (context, state) {
             final id = int.parse(state.pathParameters['conversationId']!);
             return ConversationPage(conversationId: id);
           },
+        ),
+        GoRoute(
+          path: '/resume',
+          builder: (context, state) => const ResumePage(),
         ),
         GoRoute(
           path: '/mentor/offer-letters',
