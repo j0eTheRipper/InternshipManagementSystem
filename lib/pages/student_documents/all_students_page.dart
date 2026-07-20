@@ -45,11 +45,20 @@ class _AllStudentsPageState extends State<AllStudentsPage> {
 
   String _statusFromProgress(String progress) {
     switch (progress) {
+      case 'none':
+        return 'No Resume';
       case 'resume':
+        return 'Resume';
+      case 'application':
+        return 'Application';
       case 'offer_letter':
-        return 'Pending Review';
+        return 'Offer Letter';
+      case 'pending_documents':
+        return 'Pending Documents';
+      case 'accepted':
+        return 'Accepted';
       default:
-        return 'Active';
+        return progress;
     }
   }
 
@@ -89,6 +98,7 @@ class _AllStudentsPageState extends State<AllStudentsPage> {
                     field: student.fieldOfStudy,
                     year: student.yearOfStudy,
                     status: _statusFromProgress(student.progress),
+                    progress: student.progress,
                     company: _companyCache[student.studentId],
                     onTap: () => context.go(
                       '/mentor/student-detail/${student.studentId}',
@@ -127,6 +137,7 @@ class _StudentCard extends StatelessWidget {
   final String field;
   final int year;
   final String status;
+  final String progress;
   final String? company;
   final VoidCallback? onTap;
 
@@ -135,14 +146,15 @@ class _StudentCard extends StatelessWidget {
     required this.field,
     required this.year,
     required this.status,
+    required this.progress,
     this.company,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isPending = status == 'Pending Review';
-    final showCompany = company != null && status == 'Active';
+    final isPending = progress == 'resume' || progress == 'offer_letter' || progress == 'pending_documents';
+    final showCompany = company != null && progress == 'accepted';
 
     return Material(
       color: Colors.white,

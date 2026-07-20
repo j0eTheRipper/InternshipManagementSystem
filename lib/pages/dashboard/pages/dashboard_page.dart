@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:internship_management_system/api/application.dart';
@@ -10,8 +12,53 @@ import 'package:internship_management_system/pages/dashboard/pages/interning_das
 import 'package:internship_management_system/pages/pending_documents/pending_documents_page.dart';
 import 'package:internship_management_system/pages/admin/admin_dashboard_page.dart';
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
+
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
+  Timer? _progressPollTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshStudent();
+    _progressPollTimer = Timer.periodic(const Duration(seconds: 10), (_) => _pollProgress());
+  }
+
+  @override
+  void dispose() {
+    _progressPollTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _refreshStudent() async {
+    if (!AuthState.isStudent) return;
+    final userId = AuthState.currentUser?.userId;
+    if (userId == null) return;
+    try {
+      final student = await getStudent(userId.toString());
+      await AuthState.updateStudentData(student);
+    } catch (_) {}
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _pollProgress() async {
+    if (!AuthState.isStudent) return;
+    final userId = AuthState.currentUser?.userId;
+    if (userId == null) return;
+    try {
+      final updated = await getStudent(userId.toString());
+      final previous = AuthState.currentStudent?.progress;
+      await AuthState.updateStudentData(updated);
+      if (updated.progress != previous && mounted) {
+        setState(() {});
+      }
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,11 +91,33 @@ class _StudentDashboardState extends State<_StudentDashboard> {
   List<Opportunity> _opportunities = [];
   int _applicationCount = 0;
   bool _loading = true;
+  Timer? _pollTimer;
 
   @override
   void initState() {
     super.initState();
     _fetchData();
+    _pollTimer = Timer.periodic(const Duration(seconds: 10), (_) => _pollProgress());
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _pollProgress() async {
+    final userId = AuthState.currentUser?.userId;
+    if (userId == null) return;
+
+    try {
+      final updated = await getStudent(userId.toString());
+      final previous = AuthState.currentStudent?.progress;
+      if (updated.progress != previous && mounted) {
+        await AuthState.updateStudentData(updated);
+        context.go('/dashboard');
+      }
+    } catch (_) {}
   }
 
   Future<void> _fetchData() async {
@@ -353,12 +422,25 @@ class _MentorDashboardState extends State<_MentorDashboard> {
 
   String _statusFromProgress(String progress) {
     switch (progress) {
+      case 'none':
+        return 'No Resume';
       case 'resume':
+        return 'Resume';
+      case 'application':
+        return 'Application';
       case 'offer_letter':
-        return 'Pending Review';
+        return 'Offer Letter';
+      case 'pending_documents':
+        return 'Pending Documents';
+      case 'accepted':
+        return 'Accepted';
       default:
-        return 'Active';
+        return progress;
     }
+  }
+
+  bool _isPending(String progress) {
+    return progress == 'resume' || progress == 'offer_letter' || progress == 'pending_documents';
   }
 
   @override
@@ -366,7 +448,7 @@ class _MentorDashboardState extends State<_MentorDashboard> {
     final user = AuthState.currentUser;
 
     final pendingCount =
-        _students.where((s) => _statusFromProgress(s.progress) == 'Pending Review').length;
+        _students.where((s) => _isPending(s.progress)).length;
     final activeCount = _students.length - pendingCount;
 
     if (_loading) {
@@ -465,6 +547,7 @@ class _MentorDashboardState extends State<_MentorDashboard> {
                     field: student.fieldOfStudy,
                     year: student.yearOfStudy,
                     status: _statusFromProgress(student.progress),
+                    progress: student.progress,
                     company: _companyCache[student.studentId],
                     onTap: () => context.go(
                       '/mentor/student-detail/${student.studentId}',
@@ -729,6 +812,7 @@ class _StudentCard extends StatelessWidget {
   final String field;
   final int year;
   final String status;
+  final String progress;
   final String? company;
   final VoidCallback? onTap;
 
@@ -737,14 +821,15 @@ class _StudentCard extends StatelessWidget {
     required this.field,
     required this.year,
     required this.status,
+    required this.progress,
     this.company,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isPending = status == 'Pending Review';
-    final showCompany = company != null && status == 'Active';
+    final isPending = progress == 'resume' || progress == 'offer_letter' || progress == 'pending_documents';
+    final showCompany = company != null && progress == 'accepted';
 
     return Material(
       color: Colors.white,

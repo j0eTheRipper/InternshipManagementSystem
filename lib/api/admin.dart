@@ -91,7 +91,11 @@ Future<Student> getStudentById(String studentId, {http.Client? client}) async {
   throw Exception(json['detail'] ?? 'Failed to fetch student');
 }
 
-Future<void> updateStudentProgress(String studentId, String progress, {http.Client? client}) async {
+Future<void> updateStudentProgress(
+  String studentId,
+  String progress, {
+  http.Client? client,
+}) async {
   final c = client ?? http.Client();
   final response = await c.patch(
     Uri.parse('$baseUrl/admin/students/$studentId/progress'),
@@ -109,7 +113,11 @@ Future<void> updateStudentProgress(String studentId, String progress, {http.Clie
   }
 }
 
-Future<void> updateStudentMentor(String studentId, int mentorId, {http.Client? client}) async {
+Future<void> updateStudentMentor(
+  String studentId,
+  int mentorId, {
+  http.Client? client,
+}) async {
   final c = client ?? http.Client();
   final response = await c.patch(
     Uri.parse('$baseUrl/admin/students/$studentId/mentor'),
@@ -183,7 +191,11 @@ Future<List<User>> getAllMentors({http.Client? client}) async {
 
 // ── Attendance ────────────────────────────────────────────
 
-Future<void> addAttendance(String studentId, String date, {http.Client? client}) async {
+Future<void> addAttendance(
+  String studentId,
+  String date, {
+  http.Client? client,
+}) async {
   final c = client ?? http.Client();
   final response = await c.post(
     Uri.parse('$baseUrl/admin/attendance'),
@@ -218,7 +230,10 @@ Future<void> deleteAttendance(int attendanceId, {http.Client? client}) async {
   }
 }
 
-Future<List<Map<String, dynamic>>> getStudentAttendance(String studentId, {http.Client? client}) async {
+Future<List<Map<String, dynamic>>> getStudentAttendance(
+  String studentId, {
+  http.Client? client,
+}) async {
   final c = client ?? http.Client();
   final response = await c.get(
     Uri.parse('$baseUrl/admin/attendance/$studentId'),
@@ -240,7 +255,9 @@ Future<List<Map<String, dynamic>>> getStudentAttendance(String studentId, {http.
 
 // ── Company Supervisors ─────────────────────────────────
 
-Future<List<CompanySupervisor>> getAllCompanySupervisors({http.Client? client}) async {
+Future<List<CompanySupervisor>> getAllCompanySupervisors({
+  http.Client? client,
+}) async {
   final c = client ?? http.Client();
   final response = await c.get(
     Uri.parse('$baseUrl/admin/company-supervisors'),
@@ -260,7 +277,11 @@ Future<List<CompanySupervisor>> getAllCompanySupervisors({http.Client? client}) 
   throw Exception(json['detail'] ?? 'Failed to fetch company supervisors');
 }
 
-Future<void> updateStudentCompanySupervisor(String studentId, int? companySupervisorId, {http.Client? client}) async {
+Future<void> updateStudentCompanySupervisor(
+  String studentId,
+  int? companySupervisorId, {
+  http.Client? client,
+}) async {
   final c = client ?? http.Client();
   final response = await c.patch(
     Uri.parse('$baseUrl/admin/students/$studentId/company-supervisor'),
@@ -278,7 +299,9 @@ Future<void> updateStudentCompanySupervisor(String studentId, int? companySuperv
   }
 }
 
-Future<List<Map<String, dynamic>>> getPendingSupervisors({http.Client? client}) async {
+Future<List<Map<String, dynamic>>> getPendingSupervisors({
+  http.Client? client,
+}) async {
   final c = client ?? http.Client();
   final response = await c.get(
     Uri.parse('$baseUrl/admin/pending-supervisors'),

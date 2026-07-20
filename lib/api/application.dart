@@ -186,3 +186,21 @@ Future<void> acceptApplication(int applicationId) async {
     throw Exception(json['detail'] ?? 'Failed to accept application');
   }
 }
+
+Future<List<Application>> getStudentApplications(String studentId) async {
+  final token = AuthState.token;
+  final response = await http.get(
+    Uri.parse('$baseUrl/students/$studentId/applications'),
+    headers: {if (token != null) 'Authorization': 'Bearer $token'},
+  );
+
+  AuthState.requireAuth(response);
+
+  if (response.statusCode == 200) {
+    final List json = jsonDecode(response.body);
+    return json.map((e) => Application.fromJson(e)).toList();
+  }
+
+  final json = jsonDecode(response.body);
+  throw Exception(json['detail'] ?? 'Failed to fetch student applications');
+}

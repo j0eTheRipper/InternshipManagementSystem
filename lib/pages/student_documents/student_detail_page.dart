@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:internship_management_system/api/application.dart';
 import 'package:internship_management_system/api/chat.dart';
 import 'package:internship_management_system/api/indemnity_letter.dart';
 import 'package:internship_management_system/api/offer_letter.dart';
+import 'package:internship_management_system/api/opportunity.dart';
 import 'package:internship_management_system/api/placement_agreement.dart';
 import 'package:internship_management_system/api/resume.dart';
 import 'package:internship_management_system/api/student.dart';
+import 'package:internship_management_system/models/application.dart';
 import 'package:internship_management_system/models/indemnity_letter.dart';
+import 'package:internship_management_system/models/opportunity.dart';
 import 'package:internship_management_system/models/placement_agreement.dart';
 import 'package:internship_management_system/models/resume.dart';
 import 'package:internship_management_system/models/student.dart';
@@ -28,6 +32,8 @@ class _StudentDetailPageState extends State<StudentDetailPage> {
   List<dynamic> _offerLetters = [];
   IndemnityLetterData? _indemnityLetter;
   PlacementAgreementData? _placementAgreement;
+  List<Application> _applications = [];
+  final Map<int, Opportunity> _opportunities = {};
   bool _loading = true;
   final Map<String, bool> _openingPdf = {};
 
@@ -39,9 +45,10 @@ class _StudentDetailPageState extends State<StudentDetailPage> {
 
   Future<void> _fetchData() async {
     setState(() => _loading = true);
+    Student? student;
     try {
       final students = await getMentorStudents();
-      final student = students.cast<Student?>().firstWhere(
+      student = students.cast<Student?>().firstWhere(
         (s) => s!.studentId == widget.studentId,
         orElse: () => null,
       );
@@ -91,16 +98,44 @@ class _StudentDetailPageState extends State<StudentDetailPage> {
     } catch (_) {
       if (mounted) setState(() => _loading = false);
     }
+
+    try {
+      if (student != null) {
+        final apps = await getStudentApplications(widget.studentId);
+        final opps = <int, Opportunity>{};
+        for (final app in apps) {
+          if (!app.isExternal && app.opportunityId != null) {
+            try {
+              opps[app.opportunityId!] = await getOpportunity(app.opportunityId!);
+            } catch (_) {}
+          }
+        }
+        if (mounted) {
+          setState(() {
+            _applications = apps;
+            _opportunities..clear()..addAll(opps);
+          });
+        }
+      }
+    } catch (_) {}
   }
 
   String _statusFromProgress(String progress) {
     switch (progress) {
+      case 'none':
+        return 'No Resume';
       case 'resume':
+        return 'Resume';
+      case 'application':
+        return 'Application';
       case 'offer_letter':
+        return 'Offer Letter';
       case 'pending_documents':
-        return 'Pending Review';
+        return 'Pending Documents';
+      case 'accepted':
+        return 'Accepted';
       default:
-        return 'Active';
+        return progress;
     }
   }
 
@@ -341,6 +376,7 @@ class _StudentDetailPageState extends State<StudentDetailPage> {
                       _buildHeader(),
                       const SizedBox(height: 24),
                       _buildDocumentsSection(),
+                      _buildApplicationsSection(),
                     ],
                   ),
                 ),
@@ -368,11 +404,12 @@ class _StudentDetailPageState extends State<StudentDetailPage> {
 
   Widget _buildHeader() {
     final student = _student!;
-    final status = _statusFromProgress(student.progress);
+    final progress = student.progress;
+    final status = _statusFromProgress(progress);
 
     Color statusBg;
     Color statusFg;
-    if (status == 'Pending Review') {
+    if (progress == 'resume' || progress == 'offer_letter' || progress == 'pending_documents') {
       statusBg = const Color(0xFFFFF3E0);
       statusFg = const Color(0xFFE65100);
     } else {
@@ -768,6 +805,123 @@ class _StudentDetailPageState extends State<StudentDetailPage> {
           ],
         ],
       ),
+    );
+  }
+  Color _statusColor(String status) {
+    switch (status) {
+      case 'accepted': return const Color(0xFF2E7D32);
+      case 'rejected': return const Color(0xFFC62828);
+      case 'interview': return const Color(0xFFE65100);
+      case 'uploaded': return const Color(0xFFFF8F00);
+      default: return const Color(0xFF9E9E9E);
+    }
+  }
+
+  Widget _buildApplicationsSection() {
+    if (_applications.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 24),
+        const Text(
+          'Applications',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: const Color(0xFFE0E0E0).withValues(alpha: 0.5),
+            ),
+          ),
+          child: Column(
+            children: _applications.map((app) {
+              final opp = !app.isExternal ? _opportunities[app.opportunityId] : null;
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: Row(
+                  children: [
+                      Icon(
+                        app.isExternal ? Icons.business : Icons.work_outline,
+                        color: const Color(0xFF717182),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              app.isExternal
+                                  ? (app.jobTitle ?? 'External Application')
+                                  : (opp?.title ?? 'Opportunity #${app.opportunityId}'),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF1A1A1A),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              app.isExternal
+                                  ? (app.companyName ?? '')
+                                  : (opp?.company ?? ''),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF717182),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: _statusColor(app.status).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          app.status[0].toUpperCase() + app.status.substring(1),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: _statusColor(app.status),
+                          ),
+                        ),
+                      ),
+                      if (app.isExternal) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1565C0).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            'External',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1565C0),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              }).toList(),
+          ),
+        ),
+      ],
     );
   }
 }
