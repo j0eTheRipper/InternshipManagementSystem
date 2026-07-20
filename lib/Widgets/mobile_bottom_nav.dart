@@ -51,6 +51,7 @@ class _NavDestination {
 const _preInternshipDestinations = [
   _NavDestination(icon: Icons.dashboard_rounded, label: 'Dashboard', route: '/dashboard'),
   _NavDestination(icon: Icons.business_rounded, label: 'Opportunities', route: '/opportunities'),
+  _NavDestination(icon: Icons.chat_bubble_outline_rounded, label: 'Chat', route: '/chat'),
   _NavDestination(icon: Icons.assignment_rounded, label: 'Applications', route: '/my-applications'),
   _NavDestination(icon: Icons.person_rounded, label: 'Profile', route: '/profile'),
 ];
@@ -59,5 +60,6 @@ const _interningDestinations = [
   _NavDestination(icon: Icons.dashboard_rounded, label: 'Dashboard', route: '/dashboard'),
   _NavDestination(icon: Icons.event_available_outlined, label: 'Attendance', route: '/attendance'),
   _NavDestination(icon: Icons.edit_note_rounded, label: 'Work Logs', route: '/work-logs'),
+  _NavDestination(icon: Icons.chat_bubble_outline_rounded, label: 'Chat', route: '/chat'),
   _NavDestination(icon: Icons.person_rounded, label: 'Profile', route: '/profile'),
 ];

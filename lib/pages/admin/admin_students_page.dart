@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:internship_management_system/api/admin.dart';
+import 'package:internship_management_system/api/chat.dart';
 import 'package:internship_management_system/models/company_supervisor.dart';
 import 'package:internship_management_system/models/student.dart';
 import 'package:internship_management_system/models/user.dart';
@@ -530,11 +531,38 @@ class _AdminStudentsPageState extends State<AdminStudentsPage> {
                 ),
               ),
               const SizedBox(height: 8),
-              IconButton(
-                onPressed: () => _showEditDialog(student),
-                icon: const Icon(Icons.edit_outlined, size: 20),
-                color: const Color(0xFF717182),
-                tooltip: 'Edit student',
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    onPressed: () async {
+                      try {
+                        final conversationId = await createOrGetConversation(student.user.userId);
+                        if (context.mounted) {
+                          context.push('/chat/$conversationId');
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(e.toString().replaceFirst('Exception: ', '')),
+                              backgroundColor: Colors.red.shade700,
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.chat_bubble_outline_rounded, size: 20),
+                    color: const Color(0xFF717182),
+                    tooltip: 'Message student',
+                  ),
+                  IconButton(
+                    onPressed: () => _showEditDialog(student),
+                    icon: const Icon(Icons.edit_outlined, size: 20),
+                    color: const Color(0xFF717182),
+                    tooltip: 'Edit student',
+                  ),
+                ],
               ),
             ],
           ),

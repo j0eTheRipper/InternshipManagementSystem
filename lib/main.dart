@@ -7,6 +7,7 @@ import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/services/push_notification_service.dart';
 import 'package:internship_management_system/pages/dashboard/dashboard_layout.dart';
 import 'package:internship_management_system/pages/chat/chat_page.dart';
+import 'package:internship_management_system/pages/chat/conversation_page.dart';
 import 'package:internship_management_system/pages/dashboard/pages/dashboard_page.dart';
 import 'package:internship_management_system/pages/headhunter/headhunter_postings_page.dart';
 import 'package:internship_management_system/pages/headhunter/headhunter_register_page.dart';
@@ -114,8 +115,15 @@ final _router = GoRouter(
         ),
         GoRoute(path: '/chat', builder: (context, state) => const ChatPage()),
         GoRoute(
-          path: '/resume',
-          builder: (context, state) => const ResumePage(),
+          path: '/chat',
+          builder: (context, state) => const ChatPage(),
+        ),
+        GoRoute(
+          path: '/chat/:conversationId',
+          builder: (context, state) {
+            final id = int.parse(state.pathParameters['conversationId']!);
+            return ConversationPage(conversationId: id);
+          },
         ),
         GoRoute(
           path: '/mentor/offer-letters',

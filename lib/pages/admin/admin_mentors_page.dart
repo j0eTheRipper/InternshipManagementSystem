@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:internship_management_system/api/admin.dart';
+import 'package:internship_management_system/api/chat.dart';
 import 'package:internship_management_system/models/student.dart';
 import 'package:internship_management_system/models/user.dart';
 
@@ -675,6 +677,28 @@ class _MentorCard extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+              IconButton(
+                onPressed: () async {
+                  try {
+                    final conversationId = await createOrGetConversation(mentor.userId);
+                    if (context.mounted) {
+                      context.push('/chat/$conversationId');
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(e.toString().replaceFirst('Exception: ', '')),
+                          backgroundColor: Colors.red.shade700,
+                        ),
+                      );
+                    }
+                  }
+                },
+                icon: const Icon(Icons.chat_bubble_outline_rounded, size: 20),
+                color: const Color(0xFF717182),
+                tooltip: 'Message mentor',
               ),
               const Icon(Icons.chevron_right_rounded, color: Color(0xFF9E9E9E)),
             ],

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/notifications/notification_service.dart';
+import 'package:internship_management_system/notifications/chat_notification_service.dart';
 import 'package:internship_management_system/Widgets/nav_item.dart';
 
 class Sidebar extends StatefulWidget {
@@ -17,23 +18,33 @@ class Sidebar extends StatefulWidget {
 
 class _SidebarState extends State<Sidebar> {
   int _unreadCount = 0;
+  int _chatUnreadCount = 0;
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _unreadCount = NotificationService.instance.unreadCount;
+    _chatUnreadCount = ChatNotificationService.instance.unreadCount;
     NotificationService.instance.addListener(_onUnreadChanged);
+    ChatNotificationService.instance.addListener(_onUnreadChanged);
     NotificationService.instance.fetchUnread();
+    ChatNotificationService.instance.fetchUnread();
     _timer = Timer.periodic(
       const Duration(seconds: 30),
-      (_) => NotificationService.instance.fetchUnread(),
+      (_) {
+        NotificationService.instance.fetchUnread();
+        ChatNotificationService.instance.fetchUnread();
+      },
     );
   }
 
   void _onUnreadChanged() {
     if (mounted) {
-      setState(() => _unreadCount = NotificationService.instance.unreadCount);
+      setState(() {
+        _unreadCount = NotificationService.instance.unreadCount;
+        _chatUnreadCount = ChatNotificationService.instance.unreadCount;
+      });
     }
   }
 
@@ -43,6 +54,7 @@ class _SidebarState extends State<Sidebar> {
   @override
   void dispose() {
     NotificationService.instance.removeListener(_onUnreadChanged);
+    ChatNotificationService.instance.removeListener(_onUnreadChanged);
     _timer?.cancel();
     super.dispose();
   }
@@ -235,6 +247,13 @@ class _SidebarState extends State<Sidebar> {
                 _NotificationNavItem(
                   unreadCount: _unreadCount,
                   onAfterNavigate: _closeDrawer,
+                ),
+                NavItem(
+                  icon: Icons.chat_bubble_outline_rounded,
+                  label: 'Messages',
+                  route: '/chat',
+                  onAfterNavigate: _closeDrawer,
+                  badgeCount: _chatUnreadCount,
                 ),
                 NavItem(
                   icon: Icons.person_rounded,

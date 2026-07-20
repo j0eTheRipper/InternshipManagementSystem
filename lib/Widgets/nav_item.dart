@@ -6,6 +6,7 @@ class NavItem extends StatelessWidget {
   final String label;
   final String route;
   final VoidCallback? onAfterNavigate;
+  final int badgeCount;
 
   const NavItem({
     super.key,
@@ -13,6 +14,7 @@ class NavItem extends StatelessWidget {
     required this.label,
     required this.route,
     this.onAfterNavigate,
+    this.badgeCount = 0,
   });
 
   @override
@@ -52,6 +54,29 @@ class NavItem extends StatelessWidget {
                     color: isActive ? Colors.white : const Color(0xFF1A1A1A),
                   ),
                 ),
+                if (badgeCount > 0) ...[
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isActive ? Colors.white : const Color(0xFFE53935),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      badgeCount > 99 ? '99+' : '$badgeCount',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: isActive
+                            ? const Color(0xFFE53935)
+                            : Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

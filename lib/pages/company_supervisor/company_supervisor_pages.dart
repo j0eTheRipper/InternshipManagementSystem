@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:internship_management_system/api/chat.dart';
 import 'package:internship_management_system/api/company_supervisor.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
 
@@ -163,6 +165,7 @@ class _CompanySupervisorDashboardState extends State<CompanySupervisorDashboard>
   Widget _buildStudentCard(Map<String, dynamic> student) {
     final user = student['user'] as Map<String, dynamic>;
     final name = user['fullname'] as String? ?? '';
+    final userId = user['user_id'] as int? ?? 0;
     final fieldOfStudy = student['field_of_study'] as String? ?? '';
     final yearOfStudy = student['year_of_study'] as int? ?? 0;
     final studentId = student['student_id'] as String? ?? '';
@@ -239,6 +242,28 @@ class _CompanySupervisorDashboardState extends State<CompanySupervisorDashboard>
                       ),
                     ],
                   ),
+                ),
+                IconButton(
+                  onPressed: () async {
+                    try {
+                      final conversationId = await createOrGetConversation(userId);
+                      if (context.mounted) {
+                        context.push('/chat/$conversationId');
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(e.toString().replaceFirst('Exception: ', '')),
+                            backgroundColor: Colors.red.shade700,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  icon: const Icon(Icons.chat_bubble_outline_rounded, size: 20),
+                  color: const Color(0xFF757575),
+                  tooltip: 'Message student',
                 ),
                 Icon(Icons.chevron_right, size: 20, color: const Color(0xFFABABAB)),
               ],
@@ -725,6 +750,7 @@ class _CompanySupervisorStudentsPageState extends State<CompanySupervisorStudent
   Widget _buildStudentCard(Map<String, dynamic> student) {
     final user = student['user'] as Map<String, dynamic>;
     final name = user['fullname'] as String? ?? '';
+    final userId = user['user_id'] as int? ?? 0;
     final fieldOfStudy = student['field_of_study'] as String? ?? '';
     final yearOfStudy = student['year_of_study'] as int? ?? 0;
     final studentId = student['student_id'] as String? ?? '';
@@ -801,6 +827,28 @@ class _CompanySupervisorStudentsPageState extends State<CompanySupervisorStudent
                       ),
                     ],
                   ),
+                ),
+                IconButton(
+                  onPressed: () async {
+                    try {
+                      final conversationId = await createOrGetConversation(userId);
+                      if (context.mounted) {
+                        context.push('/chat/$conversationId');
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(e.toString().replaceFirst('Exception: ', '')),
+                            backgroundColor: Colors.red.shade700,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  icon: const Icon(Icons.chat_bubble_outline_rounded, size: 20),
+                  color: const Color(0xFF757575),
+                  tooltip: 'Message student',
                 ),
                 Icon(Icons.chevron_right, size: 20, color: const Color(0xFFABABAB)),
               ],

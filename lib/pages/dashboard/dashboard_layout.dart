@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/notifications/notification_service.dart';
+import 'package:internship_management_system/notifications/chat_notification_service.dart';
 import 'package:internship_management_system/pages/dashboard/sidebar.dart';
 import 'package:internship_management_system/Widgets/mobile_bottom_nav.dart';
 
@@ -19,29 +20,40 @@ class DashboardLayout extends StatefulWidget {
 
 class _DashboardLayoutState extends State<DashboardLayout> {
   int _unreadCount = 0;
+  int _chatUnreadCount = 0;
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _unreadCount = NotificationService.instance.unreadCount;
+    _chatUnreadCount = ChatNotificationService.instance.unreadCount;
     NotificationService.instance.addListener(_onUnreadChanged);
+    ChatNotificationService.instance.addListener(_onUnreadChanged);
     NotificationService.instance.fetchUnread();
+    ChatNotificationService.instance.fetchUnread();
     _timer = Timer.periodic(
       const Duration(seconds: 30),
-      (_) => NotificationService.instance.fetchUnread(),
+      (_) {
+        NotificationService.instance.fetchUnread();
+        ChatNotificationService.instance.fetchUnread();
+      },
     );
   }
 
   void _onUnreadChanged() {
     if (mounted) {
-      setState(() => _unreadCount = NotificationService.instance.unreadCount);
+      setState(() {
+        _unreadCount = NotificationService.instance.unreadCount;
+        _chatUnreadCount = ChatNotificationService.instance.unreadCount;
+      });
     }
   }
 
   @override
   void dispose() {
     NotificationService.instance.removeListener(_onUnreadChanged);
+    ChatNotificationService.instance.removeListener(_onUnreadChanged);
     _timer?.cancel();
     super.dispose();
   }
@@ -94,6 +106,38 @@ class _DashboardLayoutState extends State<DashboardLayout> {
           ),
         ),
         actions: [
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.chat_bubble_outline_rounded, color: Color(0xFF1A1A1A)),
+                onPressed: () => context.go('/chat'),
+              ),
+              if (_chatUnreadCount > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFE53935),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        _chatUnreadCount > 99 ? '99+' : '$_chatUnreadCount',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
           Stack(
             alignment: Alignment.center,
             children: [
