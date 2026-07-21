@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:internship_management_system/api/attendance.dart';
+import 'package:internship_management_system/utils/time.dart';
 
 class AttendancePage extends StatefulWidget {
   const AttendancePage({super.key});
@@ -75,7 +76,8 @@ class _AttendancePageState extends State<AttendancePage> {
   }
 
   Widget _buildSummary() {
-    final attended = _history.where((r) => r['attended'] == true).length;
+    final attended = _history.where((r) => r['checked_at'] != null).length;
+    final verified = _history.where((r) => r['verified'] == true).length;
     final total = _history.length;
     final rate = total > 0 ? attended / total : 0.0;
 
@@ -94,7 +96,7 @@ class _AttendancePageState extends State<AttendancePage> {
               Icon(Icons.bar_chart_rounded, size: 18, color: const Color(0xFF1A1A1A).withValues(alpha: 0.6)),
               const SizedBox(width: 10),
               Text(
-                '$attended of $total days attended',
+                '$attended of $total days attended ($verified verified)',
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -158,19 +160,19 @@ class _AttendancePageState extends State<AttendancePage> {
   }
 
   Widget _buildRow(Map<String, dynamic> record) {
-    final attended = record['attended'] == true;
+    final checkedAt = record['checked_at'] as String?;
+    final attended = checkedAt != null;
     final pending = record['pending'] == true;
     final verified = record['verified'] == true;
     final dateStr = record['date'] as String;
 
     DateTime? dt;
-    final checkedAt = record['checked_at'] as String?;
-    if (checkedAt != null) dt = DateTime.tryParse(checkedAt);
+    if (checkedAt != null) {
+      dt = parseServerTime(checkedAt);
+    }
 
     final displayDate = _formatDate(dateStr);
-    final timeStr = dt != null
-        ? '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}'
-        : '';
+    final timeStr = dt != null ? formatTime24(dt) : '';
 
     final Color bgColor;
     final Color iconBgColor;
@@ -178,12 +180,18 @@ class _AttendancePageState extends State<AttendancePage> {
     final IconData icon;
     final String label;
 
-    if (attended) {
-      bgColor = Colors.white;
-      iconBgColor = const Color(0xFFE8F5E9);
-      iconColor = const Color(0xFF2E7D32);
+    if (attended && verified) {
+      bgColor = const Color(0xFFE8F5E9);
+      iconBgColor = const Color(0xFF2E7D32);
+      iconColor = Colors.white;
       icon = Icons.check_rounded;
-      label = 'Checked in';
+      label = 'Attended & Verified';
+    } else if (attended && !verified) {
+      bgColor = const Color(0xFFFFF8E1);
+      iconBgColor = const Color(0xFFF57C00);
+      iconColor = Colors.white;
+      icon = Icons.schedule_rounded;
+      label = 'Attended & Unverified';
     } else if (pending) {
       bgColor = const Color(0xFFFFF8E1);
       iconBgColor = const Color(0xFFFFF3E0);
@@ -234,11 +242,13 @@ class _AttendancePageState extends State<AttendancePage> {
                   label,
                   style: TextStyle(
                     fontSize: 12,
-                    color: attended
-                        ? const Color(0xFF9E9E9E)
-                        : pending
+                    color: attended && verified
+                        ? const Color(0xFF2E7D32)
+                        : attended && !verified
                             ? const Color(0xFFF57C00)
-                            : const Color(0xFFC62828),
+                            : pending
+                                ? const Color(0xFFF57C00)
+                                : const Color(0xFFC62828),
                   ),
                 ),
               ],
@@ -253,24 +263,6 @@ class _AttendancePageState extends State<AttendancePage> {
                 color: Color(0xFF757575),
               ),
             ),
-          if (attended && !pending) ...[
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: verified ? const Color(0xFFE8F5E9) : const Color(0xFFFFF3E0),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                verified ? 'Verified' : 'Unverified',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: verified ? const Color(0xFF2E7D32) : const Color(0xFFF57C00),
-                ),
-              ),
-            ),
-          ],
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
+import 'package:internship_management_system/utils/time.dart';
 
 class MessageBubble extends StatelessWidget {
   final int messageId;
@@ -20,16 +21,9 @@ class MessageBubble extends StatelessWidget {
   });
 
   String _formatTime(String? dateTimeStr) {
-    if (dateTimeStr == null) return '';
-    try {
-      final dt = DateTime.parse(dateTimeStr);
-      final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
-      final minute = dt.minute.toString().padLeft(2, '0');
-      final ampm = dt.hour >= 12 ? 'PM' : 'AM';
-      return '$hour:$minute $ampm';
-    } catch (_) {
-      return '';
-    }
+    final dt = parseServerTime(dateTimeStr);
+    if (dt == null) return '';
+    return formatTime12(dt);
   }
 
   @override

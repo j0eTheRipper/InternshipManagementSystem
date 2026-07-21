@@ -127,7 +127,7 @@ class _SidebarState extends State<Sidebar> {
                   ),
                 ),
                 SizedBox(width: 9),
-                if (!isAdmin)
+                if (!isAdmin && !isCompanySupervisor)
                   NavItem(
                     icon: Icons.dashboard_rounded,
                     label: 'Dashboard',

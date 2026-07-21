@@ -86,11 +86,13 @@ class _InterningContentState extends State<_InterningContent> {
   bool _showDailyCheckIn = false;
   bool _showWeeklyCheckIn = false;
   bool _checkedInToday = false;
+  Map<String, dynamic>? _todayTask;
 
   @override
   void initState() {
     super.initState();
     _fetchAttendance();
+    _fetchTodayTask();
   }
 
   Future<void> _fetchAttendance() async {
@@ -98,6 +100,18 @@ class _InterningContentState extends State<_InterningContent> {
       final checkedIn = await getTodaysAttendance();
       if (mounted) setState(() => _checkedInToday = checkedIn);
     } catch (_) {}
+  }
+
+  Future<void> _fetchTodayTask() async {
+    try {
+      final task = await getTodayTask();
+      if (mounted) setState(() => _todayTask = task);
+    } catch (_) {}
+  }
+
+  int get _worklogStatus {
+    if (_todayTask == null) return 0;
+    return _todayTask!['verified'] == true ? 2 : 1;
   }
 
   void _showAlreadyCheckedInSnackbar() {
@@ -384,10 +398,19 @@ class _InterningContentState extends State<_InterningContent> {
 
                 // Daily Task
                 _ActionCard(
-                  icon: Icons.edit_note_rounded,
+                  icon: _worklogStatus == 0
+                      ? Icons.edit_note_rounded
+                      : _worklogStatus == 1
+                          ? Icons.schedule_rounded
+                          : Icons.check_circle_rounded,
                   title: 'Daily Task',
-                  subtitle: 'Log what you worked on today',
+                  subtitle: _worklogStatus == 0
+                      ? 'Log what you worked on today'
+                      : _worklogStatus == 1
+                          ? 'Awaiting verification'
+                          : 'Verified by supervisor',
                   onTap: () => setState(() => _showWeeklyCheckIn = true),
+                  worklogStatus: _worklogStatus,
                 ),
               ],
             ),
@@ -404,7 +427,9 @@ class _InterningContentState extends State<_InterningContent> {
           // Daily task overlay
           if (_showWeeklyCheckIn)
             _DailyTaskModal(
+              existingTask: _todayTask,
               onClose: () => setState(() => _showWeeklyCheckIn = false),
+              onSubmitted: _fetchTodayTask,
             ),
         ],
       ),
@@ -418,6 +443,7 @@ class _ActionCard extends StatelessWidget {
   final String subtitle;
   final VoidCallback onTap;
   final bool checkedIn;
+  final int worklogStatus;
 
   const _ActionCard({
     required this.icon,
@@ -425,12 +451,36 @@ class _ActionCard extends StatelessWidget {
     required this.subtitle,
     required this.onTap,
     this.checkedIn = false,
+    this.worklogStatus = -1,
   });
+
+  Color _cardColor() {
+    if (worklogStatus >= 0) {
+      if (worklogStatus == 0) return const Color(0xFFE3F2FD);
+      if (worklogStatus == 1) return const Color(0xFFFFF8E1);
+      return const Color(0xFFE8F5E9);
+    }
+    return checkedIn ? const Color(0xFFE8F5E9) : const Color(0xFFF5F5F5);
+  }
+
+  Color _iconBgColor() {
+    if (worklogStatus >= 0) {
+      if (worklogStatus == 0) return const Color(0xFF1565C0);
+      if (worklogStatus == 1) return const Color(0xFFF57C00);
+      return const Color(0xFF2E7D32);
+    }
+    return checkedIn ? const Color(0xFF2E7D32) : Colors.white;
+  }
+
+  Color _iconColor() {
+    if (worklogStatus >= 0) return Colors.white;
+    return checkedIn ? Colors.white : const Color(0xFF1A1A1A);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: checkedIn ? const Color(0xFFE8F5E9) : const Color(0xFFF5F5F5),
+      color: _cardColor(),
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -443,19 +493,19 @@ class _ActionCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: checkedIn ? const Color(0xFF2E7D32) : Colors.white,
+                  color: _iconBgColor(),
                   borderRadius: BorderRadius.circular(8),
-                  boxShadow: checkedIn
-                      ? null
-                      : [
+                  boxShadow: worklogStatus < 0 && !checkedIn
+                      ? [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.04),
                             blurRadius: 4,
                             offset: const Offset(0, 1),
                           ),
-                        ],
+                        ]
+                      : null,
                 ),
-                child: Icon(icon, size: 20, color: checkedIn ? Colors.white : const Color(0xFF1A1A1A)),
+                child: Icon(icon, size: 20, color: _iconColor()),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -640,9 +690,15 @@ class _DailyCheckInModalState extends State<_DailyCheckInModal> {
 }
 
 class _DailyTaskModal extends StatefulWidget {
+  final Map<String, dynamic>? existingTask;
   final VoidCallback onClose;
+  final VoidCallback? onSubmitted;
 
-  const _DailyTaskModal({required this.onClose});
+  const _DailyTaskModal({
+    this.existingTask,
+    required this.onClose,
+    this.onSubmitted,
+  });
 
   @override
   State<_DailyTaskModal> createState() => _DailyTaskModalState();
@@ -651,7 +707,15 @@ class _DailyTaskModal extends StatefulWidget {
 class _DailyTaskModalState extends State<_DailyTaskModal> {
   bool _submitted = false;
   bool _saving = false;
-  final _updateController = TextEditingController();
+  late final TextEditingController _updateController;
+
+  @override
+  void initState() {
+    super.initState();
+    _updateController = TextEditingController(
+      text: widget.existingTask?['update_text'] as String? ?? '',
+    );
+  }
 
   @override
   void dispose() {
@@ -664,6 +728,7 @@ class _DailyTaskModalState extends State<_DailyTaskModal> {
     try {
       await submitDailyTask(updateText: _updateController.text.trim());
       if (mounted) setState(() { _submitted = true; _saving = false; });
+      widget.onSubmitted?.call();
     } catch (e) {
       if (mounted) {
         setState(() => _saving = false);
@@ -679,6 +744,8 @@ class _DailyTaskModalState extends State<_DailyTaskModal> {
 
   @override
   Widget build(BuildContext context) {
+    final verified = widget.existingTask?['verified'] == true;
+
     return GestureDetector(
       onTap: widget.onClose,
       child: Container(
@@ -694,117 +761,196 @@ class _DailyTaskModalState extends State<_DailyTaskModal> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: _submitted
-                  ? Padding(
-                      padding: const EdgeInsets.all(28),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.check_circle_outline_rounded, size: 48, color: const Color(0xFF1A1A1A)),
-                          const SizedBox(height: 20),
-                          const Text(
-                            'Daily task submitted',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Your daily update has been recorded.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 14, color: Color(0xFF757575)),
-                          ),
-                          const SizedBox(height: 24),
-                          SizedBox(
-                            width: double.infinity,
-                            child: FilledButton(
-                              onPressed: widget.onClose,
-                              style: FilledButton.styleFrom(
-                                backgroundColor: const Color(0xFF030213),
-                                padding: const EdgeInsets.symmetric(vertical: 14),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              ),
-                              child: const Text('Done', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Daily Task',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
-                          ),
-                          const SizedBox(height: 4),
-                          const Text(
-                            'What did you work on today?',
-                            style: TextStyle(fontSize: 13, color: Color(0xFF757575)),
-                          ),
-                          const SizedBox(height: 20),
-                          TextField(
-                            controller: _updateController,
-                            maxLines: 5,
-                            onChanged: (_) => setState(() {}),
-                            decoration: InputDecoration(
-                              hintText: 'e.g. Built the login page, fixed a bug in the API...',
-                              hintStyle: const TextStyle(color: Color(0xFFABABAB)),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFF030213)),
-                              ),
-                              contentPadding: const EdgeInsets.all(16),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton(
-                                  onPressed: widget.onClose,
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: const Color(0xFF757575),
-                                    side: const BorderSide(color: Color(0xFFE0E0E0)),
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  ),
-                                  child: const Text('Cancel', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: FilledButton(
-                                  onPressed: _updateController.text.trim().isNotEmpty && !_saving
-                                      ? _submit
-                                      : null,
-                                  style: FilledButton.styleFrom(
-                                    backgroundColor: const Color(0xFF030213),
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  ),
-                                  child: _saving
-                                      ? const SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                        )
-                                      : const Text('Submit', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
+              child: verified
+                  ? _buildReadOnly()
+                  : _submitted
+                      ? _buildSubmitted()
+                      : _buildForm(),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildReadOnly() {
+    final verified = widget.existingTask?['verified'] == true;
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Today\'s Update',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: verified ? const Color(0xFFE8F5E9) : const Color(0xFFFFF8E1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  verified ? 'Verified' : 'Unverified',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: verified ? const Color(0xFF2E7D32) : const Color(0xFFF57C00),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            verified ? 'Your supervisor has verified this entry.' : 'Your supervisor has not yet verified this entry.',
+            style: const TextStyle(fontSize: 13, color: Color(0xFF757575)),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8F9FA),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              _updateController.text,
+              style: const TextStyle(fontSize: 14, color: Color(0xFF424242), height: 1.5),
+            ),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: widget.onClose,
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF030213),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Text('Close', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubmitted() {
+    return Padding(
+      padding: const EdgeInsets.all(28),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.check_circle_outline_rounded, size: 48, color: const Color(0xFF1A1A1A)),
+          const SizedBox(height: 20),
+          const Text(
+            'Daily task submitted',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Your daily update has been recorded.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, color: Color(0xFF757575)),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: widget.onClose,
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF030213),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Text('Done', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildForm() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Daily Task',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'What did you work on today?',
+            style: TextStyle(fontSize: 13, color: Color(0xFF757575)),
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            controller: _updateController,
+            maxLines: 5,
+            onChanged: (_) => setState(() {}),
+            decoration: InputDecoration(
+              hintText: 'e.g. Built the login page, fixed a bug in the API...',
+              hintStyle: const TextStyle(color: Color(0xFFABABAB)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFF030213)),
+              ),
+              contentPadding: const EdgeInsets.all(16),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: widget.onClose,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF757575),
+                    side: const BorderSide(color: Color(0xFFE0E0E0)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('Cancel', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton(
+                  onPressed: _updateController.text.trim().isNotEmpty && !_saving
+                      ? _submit
+                      : null,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF030213),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: _saving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Text('Submit', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

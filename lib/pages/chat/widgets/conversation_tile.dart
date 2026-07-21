@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:internship_management_system/models/conversation.dart';
 import 'package:internship_management_system/auth/auth_state.dart';
-import 'package:intl/intl.dart';
+import 'package:internship_management_system/utils/time.dart';
 
 class ConversationTile extends StatelessWidget {
   final ConversationData conversation;
@@ -40,22 +40,9 @@ class ConversationTile extends StatelessWidget {
 
   String _formatTime(String? dateTimeStr) {
     if (dateTimeStr == null) return '';
-    try {
-      final dt = DateTime.parse(dateTimeStr);
-      final now = DateTime.now();
-      final diff = now.difference(dt);
-      if (diff.inDays == 0) {
-        return DateFormat('h:mm a').format(dt);
-      } else if (diff.inDays == 1) {
-        return 'Yesterday';
-      } else if (diff.inDays < 7) {
-        return DateFormat('EEE').format(dt);
-      } else {
-        return DateFormat('MMM d').format(dt);
-      }
-    } catch (_) {
-      return '';
-    }
+    final dt = parseServerTime(dateTimeStr);
+    if (dt == null) return '';
+    return formatRelativeTime(dt);
   }
 
   @override

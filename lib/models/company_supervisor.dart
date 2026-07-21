@@ -11,10 +11,18 @@ class CompanySupervisor {
 
   factory CompanySupervisor.fromJson(Map<String, dynamic> json) {
     final userJson = json['user'] as Map<String, dynamic>;
-    final companyJson = json['company'] as Map<String, dynamic>?;
+    final companyRaw = json['company'];
+    String companyName;
+    if (companyRaw is Map<String, dynamic>) {
+      companyName = companyRaw['name'] as String? ?? '';
+    } else if (companyRaw is String) {
+      companyName = companyRaw;
+    } else {
+      companyName = '';
+    }
     return CompanySupervisor(
       user: User.fromJson(userJson),
-      company: companyJson != null ? companyJson['name'] as String : (json['company'] as String? ?? ''),
+      company: companyName,
     );
   }
 

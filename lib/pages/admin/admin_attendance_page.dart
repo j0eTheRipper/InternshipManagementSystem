@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:internship_management_system/api/admin.dart';
 import 'package:internship_management_system/models/student.dart';
+import 'package:internship_management_system/utils/time.dart';
 
 class AdminAttendancePage extends StatefulWidget {
   const AdminAttendancePage({super.key});
@@ -331,10 +332,8 @@ class _AdminAttendancePageState extends State<AdminAttendancePage> {
     final String? checkedAt = record['checked_at'];
     final String date = record['date'] ?? '';
 
-    final DateTime? dt = checkedAt != null ? DateTime.tryParse(checkedAt) : null;
-    final String timeStr = dt != null
-        ? '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}'
-        : '';
+    final DateTime? dt = parseServerTime(checkedAt);
+    final String timeStr = dt != null ? formatTime24(dt) : '';
 
     final Color statusColor;
     final String statusLabel;

@@ -379,76 +379,9 @@ class _CompanySupervisorStudentDetailPageState extends State<CompanySupervisorSt
       padding: const EdgeInsets.all(16),
       itemCount: _attendance.length,
       separatorBuilder: (_, _) => const SizedBox(height: 4),
-      itemBuilder: (context, index) => _buildAttendanceRow(_attendance[index]),
-    );
-  }
-
-  Widget _buildAttendanceRow(Map<String, dynamic> record) {
-    final attended = record['attended'] == true;
-    final verified = record['verified'] == true;
-    final dateStr = record['date'] as String? ?? '';
-    final attendanceId = record['attendance_id'] as int?;
-
-    final displayDate = _formatDate(dateStr);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE0E0E0).withValues(alpha: 0.5)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: attended ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              attended ? Icons.check_rounded : Icons.close_rounded,
-              size: 18,
-              color: attended ? const Color(0xFF2E7D32) : const Color(0xFFC62828),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  displayDate,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  attended ? 'Checked in' : 'Missed',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: attended ? const Color(0xFF9E9E9E) : const Color(0xFFC62828),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (attended && attendanceId != null) ...[
-            _buildVerificationBadge(verified),
-            const SizedBox(width: 8),
-            _buildVerifyButton(
-              verified: verified,
-              onToggle: () async {
-                if (verified) {
-                  await unverifyAttendance(attendanceId);
-                } else {
-                  await verifyAttendance(attendanceId);
-                }
-                _fetchData();
-              },
-            ),
-          ],
-        ],
+      itemBuilder: (context, index) => _AttendanceRow(
+        record: _attendance[index],
+        onChanged: _fetchData,
       ),
     );
   }
@@ -503,55 +436,151 @@ class _CompanySupervisorStudentDetailPageState extends State<CompanySupervisorSt
     final verified = task['verified'] == true;
     final dailyTaskId = task['daily_task_id'] as int?;
     final displayDate = _formatDate(dateStr);
+    final preview = updateText.length > 20
+        ? '${updateText.substring(0, 20)}…'
+        : updateText;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: Color(0xFFF0F0F0), width: 1)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      displayDate,
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
-                    ),
-                    const SizedBox(width: 8),
-                    _buildVerificationBadge(verified),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  updateText,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 13, color: Color(0xFF424242), height: 1.4),
-                ),
-              ],
+    return InkWell(
+      onTap: dailyTaskId != null
+          ? () => _showWorkLogDetail(updateText, verified, dailyTaskId)
+          : null,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        decoration: const BoxDecoration(
+          border: Border(top: BorderSide(color: Color(0xFFF0F0F0), width: 1)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    displayDate,
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    preview,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 13, color: Color(0xFF424242), height: 1.4),
+                  ),
+                ],
+              ),
             ),
-          ),
-          if (dailyTaskId != null) ...[
-            const SizedBox(width: 8),
-            _buildVerifyButton(
-              verified: verified,
-              onToggle: () async {
-                if (verified) {
-                  await unverifyWorkLog(dailyTaskId);
-                } else {
-                  await verifyWorkLog(dailyTaskId);
-                }
-                _fetchData();
-              },
-            ),
+            Icon(Icons.chevron_right, size: 20, color: const Color(0xFFABABAB)),
           ],
-        ],
+        ),
       ),
+    );
+  }
+
+  Future<void> _showWorkLogDetail(String updateText, bool verified, int dailyTaskId) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        var isVerified = verified;
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 24,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Text(
+                        'Work Log',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1A1A1A),
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: isVerified ? const Color(0xFFE8F5E9) : const Color(0xFFFFF3E0),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          isVerified ? 'Verified' : 'Unverified',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: isVerified ? const Color(0xFF2E7D32) : const Color(0xFFF57C00),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F5F5),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      updateText,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF1A1A1A),
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () async {
+                        try {
+                          if (isVerified) {
+                            await unverifyWorkLog(dailyTaskId);
+                          } else {
+                            await verifyWorkLog(dailyTaskId);
+                          }
+                          setModalState(() => isVerified = !isVerified);
+                          _fetchData();
+                        } catch (e) {
+                          if (ctx.mounted) {
+                            ScaffoldMessenger.of(ctx).showSnackBar(
+                              SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+                            );
+                          }
+                        }
+                      },
+                      style: FilledButton.styleFrom(
+                        backgroundColor: isVerified ? const Color(0xFFC62828) : const Color(0xFF2E7D32),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: Text(
+                        isVerified ? 'Unverify' : 'Verify',
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -869,6 +898,143 @@ class _CompanySupervisorStudentsPageState extends State<CompanySupervisorStudent
       child: Text(
         label,
         style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color),
+      ),
+    );
+  }
+}
+
+class _AttendanceRow extends StatefulWidget {
+  final Map<String, dynamic> record;
+  final VoidCallback onChanged;
+
+  const _AttendanceRow({required this.record, required this.onChanged});
+
+  @override
+  State<_AttendanceRow> createState() => _AttendanceRowState();
+}
+
+class _AttendanceRowState extends State<_AttendanceRow> {
+  bool _checkboxHovered = false;
+
+  String _formatDate(String isoDate) {
+    final parts = isoDate.split('-');
+    if (parts.length != 3) return isoDate;
+    final year = int.tryParse(parts[0]) ?? 0;
+    final month = int.tryParse(parts[1]) ?? 0;
+    final day = int.tryParse(parts[2]) ?? 0;
+    if (month < 1 || month > 12 || day < 1) return isoDate;
+    final dt = DateTime(year, month, day);
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${days[dt.weekday - 1]}, ${months[dt.month - 1]} ${dt.day}, ${dt.year}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final record = widget.record;
+    final checkedAt = record['checked_at'] as String?;
+    final attended = checkedAt != null;
+    final verified = record['verified'] == true;
+    final dateStr = checkedAt != null ? checkedAt.substring(0, 10) : '';
+    final attendanceId = record['attendance_id'] as int?;
+    final displayDate = _formatDate(dateStr);
+
+    return Material(
+      color: verified ? Colors.white : const Color(0xFFFFF8E1),
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: attended && attendanceId != null && !verified
+            ? () async {
+                await verifyAttendance(attendanceId);
+                widget.onChanged();
+              }
+            : null,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: verified
+                  ? const Color(0xFFE0E0E0).withValues(alpha: 0.5)
+                  : const Color(0xFFFFE082).withValues(alpha: 0.5),
+            ),
+          ),
+          child: Row(
+            children: [
+              if (attended && attendanceId != null)
+                MouseRegion(
+                  onEnter: (_) => setState(() => _checkboxHovered = true),
+                  onExit: (_) => setState(() => _checkboxHovered = false),
+                  child: GestureDetector(
+                    onTap: verified
+                        ? () async {
+                            await unverifyAttendance(attendanceId);
+                            widget.onChanged();
+                          }
+                        : null,
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: verified
+                            ? (_checkboxHovered ? const Color(0xFFFFEBEE) : const Color(0xFFE8F5E9))
+                            : (_checkboxHovered ? const Color(0xFFFFF8E1) : Colors.transparent),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: verified
+                              ? (_checkboxHovered ? const Color(0xFFC62828) : const Color(0xFF2E7D32))
+                              : const Color(0xFFBDBDBD),
+                          width: _checkboxHovered ? 2 : 1,
+                        ),
+                      ),
+                      child: verified
+                          ? Icon(
+                              _checkboxHovered ? Icons.close_rounded : Icons.check_rounded,
+                              size: 18,
+                              color: _checkboxHovered ? const Color(0xFFC62828) : const Color(0xFF2E7D32),
+                            )
+                          : null,
+                    ),
+                  ),
+                )
+              else
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFEBEE),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.close_rounded,
+                    size: 18,
+                    color: Color(0xFFC62828),
+                  ),
+                ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      displayDate,
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      attended ? 'Checked in' : 'Missed',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: attended ? const Color(0xFF9E9E9E) : const Color(0xFFC62828),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

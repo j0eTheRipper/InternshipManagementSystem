@@ -50,6 +50,11 @@ final _router = GoRouter(
     }
 
     final location = state.matchedLocation;
+
+    if (AuthState.isCompanySupervisor && location == '/dashboard') {
+      return '/company-supervisor/dashboard';
+    }
+
     final isInterning =
         AuthState.isStudent && AuthState.currentStudent?.progress == 'accepted';
     if (isInterning &&

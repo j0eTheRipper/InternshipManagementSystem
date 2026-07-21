@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:internship_management_system/api/daily_task.dart';
+import 'package:internship_management_system/utils/time.dart';
 
 class WorkLogsPage extends StatefulWidget {
   const WorkLogsPage({super.key});
@@ -286,9 +287,9 @@ class _DayEntryState extends State<_DayEntry> {
 
     String timeStr = '';
     if (submittedAt != null) {
-      final dt = DateTime.tryParse(submittedAt);
+      final dt = parseServerTime(submittedAt);
       if (dt != null) {
-        timeStr = '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+        timeStr = formatTime24(dt);
       }
     }
 
@@ -313,10 +314,10 @@ class _DayEntryState extends State<_DayEntry> {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: const Color(0xFFE8F5E9),
+            color: verified ? const Color(0xFFE8F5E9) : const Color(0xFFFFF3E0),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Icon(Icons.check_rounded, size: 18, color: Color(0xFF2E7D32)),
+          child: Icon(Icons.check_rounded, size: 18, color: verified ? const Color(0xFF2E7D32) : const Color(0xFFF57C00)),
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -374,7 +375,7 @@ class _DayEntryState extends State<_DayEntry> {
                 timeStr,
                 style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E)),
               ),
-            if (widget.isToday) ...[
+            if (widget.isToday && !verified) ...[
               const SizedBox(height: 4),
               GestureDetector(
                 onTap: widget.onEdit,
