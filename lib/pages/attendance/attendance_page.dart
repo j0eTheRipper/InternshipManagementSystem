@@ -12,6 +12,7 @@ class AttendancePage extends StatefulWidget {
 class _AttendancePageState extends State<AttendancePage> {
   List<Map<String, dynamic>> _history = [];
   bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -22,9 +23,9 @@ class _AttendancePageState extends State<AttendancePage> {
   Future<void> _fetchHistory() async {
     try {
       final history = await getAttendanceHistory();
-      if (mounted) setState(() { _history = history; _loading = false; });
-    } catch (_) {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) setState(() { _history = history; _error = null; _loading = false; });
+    } catch (e) {
+      if (mounted) setState(() { _error = e.toString().replaceFirst('Exception: ', ''); _loading = false; });
     }
   }
 
@@ -54,11 +55,14 @@ class _AttendancePageState extends State<AttendancePage> {
                     style: TextStyle(fontSize: 14, color: Color(0xFF757575)),
                   ),
                   const SizedBox(height: 24),
-                  _buildSummary(),
-                  const SizedBox(height: 16),
-                  if (_history.isEmpty)
+                  if (_error != null) _buildErrorState(),
+                  if (_error == null) ...[
+                    _buildSummary(),
+                    const SizedBox(height: 16),
+                  ],
+                  if (_error == null && _history.isEmpty)
                     _buildEmptyState()
-                  else
+                  else if (_error == null)
                     Expanded(
                       child: RefreshIndicator(
                         onRefresh: _fetchHistory,
@@ -153,6 +157,47 @@ class _AttendancePageState extends State<AttendancePage> {
             'Your check-ins will appear here once you start tracking attendance.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 14, color: Color(0xFF9E9E9E)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFEBEE),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE0E0E0).withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.error_outline_rounded, size: 48, color: const Color(0xFFC62828)),
+          const SizedBox(height: 16),
+          const Text(
+            'Failed to load attendance',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _error!,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 14, color: Color(0xFF757575)),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () => setState(() { _loading = true; _error = null; _fetchHistory(); }),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF030213),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Text('Retry', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+            ),
           ),
         ],
       ),
