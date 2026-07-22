@@ -4,9 +4,24 @@ import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/models/opportunity.dart';
 import 'package:internship_management_system/config.dart';
 
-Future<List<Opportunity>> getOpportunities() async {
+Future<List<Opportunity>> getOpportunities({
+  String? fieldOfStudy,
+  int? limit,
+  int? offset,
+  bool otherFields = false,
+}) async {
+  final queryParams = <String, String>{};
+  if (fieldOfStudy != null) queryParams['field_of_study'] = fieldOfStudy;
+  if (limit != null) queryParams['limit'] = limit.toString();
+  if (offset != null) queryParams['offset'] = offset.toString();
+  if (otherFields) queryParams['other_fields'] = 'true';
+
+  final uri = Uri.parse('$baseUrl/opportunities').replace(
+    queryParameters: queryParams.isNotEmpty ? queryParams : null,
+  );
+
   final response = await http.get(
-    Uri.parse('$baseUrl/opportunities'),
+    uri,
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${AuthState.token}',

@@ -127,10 +127,16 @@ class _StudentDashboardState extends State<_StudentDashboard> {
       return;
     }
 
+    final fieldOfStudy = AuthState.currentStudent?.fieldOfStudy;
+
     try {
       final results = await Future.wait([
         getStudent(userId.toString()),
-        getOpportunities(),
+        getOpportunities(
+          fieldOfStudy: fieldOfStudy,
+          limit: 5,
+          offset: 0,
+        ),
         getMyApplications(),
       ]);
       if (mounted) {
@@ -255,6 +261,7 @@ class _StudentDashboardState extends State<_StudentDashboard> {
                 (opp) => _DashboardOpportunityCard(
                   company: opp.company ?? 'Unknown',
                   role: opp.jobRole,
+                  fieldOfStudy: opp.fieldOfStudy,
                   title: opp.title,
                   location: opp.location,
                   status: opp.status,
@@ -273,6 +280,7 @@ class _StudentDashboardState extends State<_StudentDashboard> {
 class _DashboardOpportunityCard extends StatelessWidget {
   final String company;
   final String role;
+  final String fieldOfStudy;
   final String title;
   final String location;
   final String status;
@@ -281,6 +289,7 @@ class _DashboardOpportunityCard extends StatelessWidget {
   const _DashboardOpportunityCard({
     required this.company,
     required this.role,
+    required this.fieldOfStudy,
     required this.title,
     required this.location,
     required this.status,
@@ -337,6 +346,14 @@ class _DashboardOpportunityCard extends StatelessWidget {
                         color: Color(0xFF717182),
                       ),
                     ),
+                    if (fieldOfStudy.isNotEmpty)
+                      Text(
+                        fieldOfStudy,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF9E9E9E),
+                        ),
+                      ),
                     Text(
                       location,
                       style: const TextStyle(

@@ -6,6 +6,7 @@ class Opportunity {
   String location;
   String status;
   int headhunterId;
+  String fieldOfStudy;
   String? createdAt;
   String? company;
 
@@ -17,6 +18,7 @@ class Opportunity {
     required this.location,
     required this.status,
     required this.headhunterId,
+    required this.fieldOfStudy,
     this.createdAt,
     this.company,
   });
@@ -30,6 +32,7 @@ class Opportunity {
       location: json['location'],
       status: json['status'],
       headhunterId: json['headhunter_id'],
+      fieldOfStudy: json['field_of_study'] ?? '',
       createdAt: json['created_at'],
       company: json['company'],
     );
@@ -43,6 +46,7 @@ class Opportunity {
     'location': location,
     'status': status,
     'headhunter_id': headhunterId,
+    'field_of_study': fieldOfStudy,
     'created_at': createdAt,
     'company': company,
   };

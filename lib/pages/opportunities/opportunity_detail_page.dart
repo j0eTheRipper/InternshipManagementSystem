@@ -307,6 +307,13 @@ class _OpportunityDetailPageState extends State<OpportunityDetailPage> {
                 '${opp.company} · ${opp.jobRole}',
               style: const TextStyle(fontSize: 16, color: Color(0xFF717182)),
             ),
+            if (opp.fieldOfStudy.isNotEmpty) ...[
+              const SizedBox(height: 2),
+              Text(
+                opp.fieldOfStudy,
+                style: const TextStyle(fontSize: 14, color: Color(0xFF9E9E9E)),
+              ),
+            ],
             const SizedBox(height: 4),
             Text(
               opp.location,
