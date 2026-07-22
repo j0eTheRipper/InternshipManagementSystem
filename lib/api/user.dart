@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:internship_management_system/auth/auth_state.dart';
 import 'package:internship_management_system/models/company_supervisor.dart';
 import 'package:internship_management_system/models/headhunter.dart';
 import 'package:internship_management_system/models/student.dart';
@@ -42,4 +43,30 @@ Future<LoginResult> login(String email, String password) async {
 
   final json = jsonDecode(response.body);
   throw Exception(json['detail'] ?? 'Login failed');
+}
+
+Future<User> updateProfile({
+  required String currentPassword,
+  String? newEmail,
+  String? newPassword,
+}) async {
+  final response = await http.patch(
+    Uri.parse('$baseUrl/profile'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ${AuthState.token}',
+    },
+    body: jsonEncode({
+      'current_password': currentPassword,
+      if (newEmail != null) 'new_email': newEmail,
+      if (newPassword != null) 'new_password': newPassword,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    return User.fromJson(jsonDecode(response.body));
+  }
+
+  final json = jsonDecode(response.body);
+  throw Exception(json['detail'] ?? 'Failed to update profile');
 }

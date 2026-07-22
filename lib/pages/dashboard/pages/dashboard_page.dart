@@ -26,7 +26,10 @@ class _DashboardPageState extends State<DashboardPage> {
   void initState() {
     super.initState();
     _refreshStudent();
-    _progressPollTimer = Timer.periodic(const Duration(seconds: 10), (_) => _pollProgress());
+    _progressPollTimer = Timer.periodic(
+      const Duration(seconds: 10),
+      (_) => _pollProgress(),
+    );
   }
 
   @override
@@ -97,7 +100,10 @@ class _StudentDashboardState extends State<_StudentDashboard> {
   void initState() {
     super.initState();
     _fetchData();
-    _pollTimer = Timer.periodic(const Duration(seconds: 10), (_) => _pollProgress());
+    _pollTimer = Timer.periodic(
+      const Duration(seconds: 10),
+      (_) => _pollProgress(),
+    );
   }
 
   @override
@@ -132,11 +138,7 @@ class _StudentDashboardState extends State<_StudentDashboard> {
     try {
       final results = await Future.wait([
         getStudent(userId.toString()),
-        getOpportunities(
-          fieldOfStudy: fieldOfStudy,
-          limit: 5,
-          offset: 0,
-        ),
+        getOpportunities(fieldOfStudy: fieldOfStudy, limit: 5, offset: 0),
         getMyApplications(),
       ]);
       if (mounted) {
@@ -181,96 +183,88 @@ class _StudentDashboardState extends State<_StudentDashboard> {
             children: [
               Text(
                 'Welcome back, ${user?.fullname ?? 'Student'}',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1A1A1A),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              student != null
-                  ? '${student.fieldOfStudy} · Year ${student.yearOfStudy}'
-                  : 'Manage your internship journey',
-              style: const TextStyle(fontSize: 14, color: Color(0xFF717182)),
-            ),
-            const SizedBox(height: 24),
-            if (student != null) _ProgressCard(student: student),
-            if (student != null) const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: _StatCard(
-                    icon: Icons.work_outline,
-                    label: 'Applications',
-                    value: '$_applicationCount',
-                    color: const Color(0xFF030213),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _StatCard(
-                    icon: Icons.check_circle_outline,
-                    label: 'Active',
-                    value: '${_opportunities.length}',
-                    color: const Color(0xFF2E7D32),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _StatCard(
-                    icon: Icons.school_outlined,
-                    label: 'Mentor',
-                    value: student?.universityMentor.fullname ?? 'N/A',
-                    color: const Color(0xFF1565C0),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Recent Opportunities',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF1A1A1A),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => context.go('/opportunities'),
-                  child: const Text('View all'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            if (recent.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
-                child: Center(
-                  child: Text(
-                    'No opportunities available yet.',
-                    style: TextStyle(fontSize: 14, color: Color(0xFF717182)),
-                  ),
-                ),
-              )
-            else
-              ...recent.map(
-                (opp) => _DashboardOpportunityCard(
-                  company: opp.company ?? 'Unknown',
-                  role: opp.jobRole,
-                  fieldOfStudy: opp.fieldOfStudy,
-                  title: opp.title,
-                  location: opp.location,
-                  status: opp.status,
-                  onTap: () =>
-                      context.go('/opportunities/${opp.opportunityId}'),
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1A1A),
                 ),
               ),
-          ],
-        ),
+              const SizedBox(height: 8),
+              Text(
+                student != null
+                    ? '${student.fieldOfStudy} · Year ${student.yearOfStudy}'
+                    : 'Manage your internship journey',
+                style: const TextStyle(fontSize: 14, color: Color(0xFF717182)),
+              ),
+              const SizedBox(height: 24),
+              if (student != null) _ProgressCard(student: student),
+              if (student != null) const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: _StatCard(
+                      icon: Icons.work_outline,
+                      label: 'Applications',
+                      value: '$_applicationCount',
+                      color: const Color(0xFF030213),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _StatCard(
+                      icon: Icons.school_outlined,
+                      label: 'Mentor',
+                      value: student?.universityMentor.fullname ?? 'N/A',
+                      color: const Color(0xFF1565C0),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Curated opportunities',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1A1A1A),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => context.go('/opportunities'),
+                    child: const Text('View all'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              if (recent.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Center(
+                    child: Text(
+                      'No opportunities available yet.',
+                      style: TextStyle(fontSize: 14, color: Color(0xFF717182)),
+                    ),
+                  ),
+                )
+              else
+                ...recent.map(
+                  (opp) => _DashboardOpportunityCard(
+                    company: opp.company ?? 'Unknown',
+                    role: opp.jobRole,
+                    fieldOfStudy: opp.fieldOfStudy,
+                    title: opp.title,
+                    location: opp.location,
+                    status: opp.status,
+                    onTap: () =>
+                        context.go('/opportunities/${opp.opportunityId}'),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -457,15 +451,16 @@ class _MentorDashboardState extends State<_MentorDashboard> {
   }
 
   bool _isPending(String progress) {
-    return progress == 'resume' || progress == 'offer_letter' || progress == 'pending_documents';
+    return progress == 'resume' ||
+        progress == 'offer_letter' ||
+        progress == 'pending_documents';
   }
 
   @override
   Widget build(BuildContext context) {
     final user = AuthState.currentUser;
 
-    final pendingCount =
-        _students.where((s) => _isPending(s.progress)).length;
+    final pendingCount = _students.where((s) => _isPending(s.progress)).length;
     final activeCount = _students.length - pendingCount;
 
     if (_loading) {
@@ -845,7 +840,10 @@ class _StudentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isPending = progress == 'resume' || progress == 'offer_letter' || progress == 'pending_documents';
+    final isPending =
+        progress == 'resume' ||
+        progress == 'offer_letter' ||
+        progress == 'pending_documents';
     final showCompany = company != null && progress == 'accepted';
 
     return Material(
@@ -903,7 +901,10 @@ class _StudentCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: isPending
                       ? const Color(0xFFFFF3E0)
