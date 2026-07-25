@@ -8,7 +8,7 @@ import 'package:internship_management_system/config.dart';
 Future<void> _onBackgroundMessage(RemoteMessage message) async {}
 
 class PushNotificationService {
-  static final _messaging = FirebaseMessaging.instance;
+  static FirebaseMessaging get _messaging => FirebaseMessaging.instance;
 
   static Future<void> init() async {
     final settings = await _messaging.requestPermission(
@@ -31,25 +31,29 @@ class PushNotificationService {
   }
 
   static Future<void> sendCurrentToken() async {
-    final token = await _messaging.getToken();
-    if (token != null) await _sendToken(token);
+    try {
+      final token = await _messaging.getToken();
+      if (token != null) await _sendToken(token);
+    } catch (_) {}
   }
 
   static Future<void> deleteToken() async {
-    final token = await _messaging.getToken();
-    if (token == null) return;
     try {
-      final url = Uri.parse('$baseUrl/fcm-token');
-      await http.delete(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${AuthState.token}',
-        },
-        body: jsonEncode({'token': token}),
-      );
+      final token = await _messaging.getToken();
+      if (token == null) return;
+      try {
+        final url = Uri.parse('$baseUrl/fcm-token');
+        await http.delete(
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ${AuthState.token}',
+          },
+          body: jsonEncode({'token': token}),
+        );
+      } catch (_) {}
+      await _messaging.deleteToken();
     } catch (_) {}
-    await _messaging.deleteToken();
   }
 
   static Future<void> _sendToken(String token) async {
