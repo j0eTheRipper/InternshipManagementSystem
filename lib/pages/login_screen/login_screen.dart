@@ -59,6 +59,8 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
+    FocusNode emailFocus = FocusNode();
+    FocusNode passwordFocus = FocusNode();
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -81,6 +83,7 @@ class _LoginState extends State<Login> {
                 const SizedBox(height: 40),
                 AppTextField(
                   controller: _emailController,
+                  focus: emailFocus,
                   hintText: 'Email',
                   prefixIcon: const Icon(Icons.email_outlined),
                   validator: (value) {
@@ -93,10 +96,16 @@ class _LoginState extends State<Login> {
                     }
                     return null;
                   },
+                  onSubmit: (value) {
+                    if (_emailController.text.isEmpty) {
+                      FocusScope.of(context).requestFocus(passwordFocus);
+                    }
+                  },
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
                   controller: _passwordController,
+                  focus: passwordFocus,
                   hintText: 'Password',
                   obscureText: _obscurePassword,
                   prefixIcon: const Icon(Icons.lock_outlined),
@@ -117,6 +126,13 @@ class _LoginState extends State<Login> {
                       return 'Please enter your password';
                     }
                     return null;
+                  },
+                  onSubmit: (value) {
+                    if (_emailController.text.isEmpty) {
+                      FocusScope.of(context).requestFocus(emailFocus);
+                      return;
+                    }
+                    _onLogin();
                   },
                 ),
                 const SizedBox(height: 24),
